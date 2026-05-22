@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Secure Multi-Device Protection</title>
+    <title>KYC Portal - Performance Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; padding-bottom: 32px; }
@@ -14,6 +14,69 @@
         .pulse-dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 1.5s infinite; }
         @keyframes pulse-green { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
         
+        /* Compact User Header with Stats */
+        .user-header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 28px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            animation: slideDown 0.4s ease;
+        }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 800; color: #1e293b; font-size: 0.9rem; }
+        .user-role { font-size: 0.6rem; color: #8b5cf6; font-weight: 700; }
+        
+        /* Compact Stats Row */
+        .user-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 40px;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+        }
+        .stat-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        .stat-value {
+            font-weight: 800;
+            color: #ec4899;
+            background: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            min-width: 35px;
+            text-align: center;
+        }
+        .online-dot-small {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-green 1.5s infinite;
+            margin-right: 4px;
+        }
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: #cbd5e1;
+        }
+        
+        .logout-btn { background: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:active { transform: scale(0.95); }
+        
         .auth-card { background: rgba(255,255,255,0.98); border-radius: 32px; padding: 32px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin-top: 20px; animation: fadeInUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
         .auth-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center; margin-bottom: 8px; }
         .auth-sub { text-align: center; font-size: 0.7rem; color: #64748b; margin-bottom: 28px; }
@@ -22,6 +85,8 @@
         .input-group:nth-child(2) { animation-delay: 0.1s; }
         .input-group:nth-child(3) { animation-delay: 0.15s; }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #4c1d95; margin-bottom: 6px; text-transform: uppercase; }
         .input-group input { width: 100%; padding: 14px 16px; font-size: 0.9rem; border: 1.5px solid #e2e8f0; border-radius: 20px; background: white; transition: all 0.3s ease; }
         .input-group input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.2); transform: scale(1.01); }
@@ -31,7 +96,6 @@
         .switch-mode { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #64748b; }
         .switch-mode span { color: #8b5cf6; font-weight: 700; cursor: pointer; text-decoration: underline; }
         .error-msg { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 20px; font-size: 0.75rem; text-align: center; margin-bottom: 16px; animation: shake 0.5s ease; }
-        .warning-msg { background: #fef3c7; color: #d97706; padding: 12px; border-radius: 20px; font-size: 0.75rem; text-align: center; margin-bottom: 16px; border-left: 3px solid #f59e0b; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         .success-msg { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 20px; font-size: 0.75rem; text-align: center; margin-bottom: 16px; }
         .btn-loading { position: relative; pointer-events: none; }
@@ -42,15 +106,10 @@
         .toast-notification.show { opacity: 1; transform: translateX(-50%) scale(1); }
         .toast-notification.success { background: #10b981; }
         .toast-notification.error { background: #ef4444; }
-        .user-header { background: rgba(255,255,255,0.95); border-radius: 28px; padding: 16px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; animation: slideDown 0.4s ease; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        .user-info { display: flex; flex-direction: column; }
-        .user-name { font-weight: 800; color: #1e293b; font-size: 0.9rem; }
-        .user-role { font-size: 0.6rem; color: #8b5cf6; font-weight: 700; }
-        .logout-btn { background: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; font-size: 0.7rem; cursor: pointer; }
+        .toast-notification.warning { background: #f59e0b; }
+        
         .header { background: rgba(255,255,255,0.95); border-radius: 28px; padding: 20px 18px; margin-bottom: 16px; position: relative; }
         .header h1 { font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .online-badge-container { display: flex; justify-content: flex-end; margin-bottom: 8px; }
         .sync-status { background: linear-gradient(135deg, #10b98120, #05966920); display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-top: 8px; color: #065f46; font-weight: 600; }
         .sync-container { background: rgba(255,255,255,0.95); border-radius: 60px; padding: 6px 16px 6px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
         .record-count { font-size: 0.7rem; color: #475569; font-weight: 600; }
@@ -82,22 +141,26 @@
         .loading-spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #ec4899; border-radius: 50%; animation: spin 0.8s linear infinite; }
         .footer-note { text-align: center; font-size: 0.6rem; color: rgba(255,255,255,0.8); margin-top: 20px; }
         .completed-hint { background: #e2e8f0; padding: 12px; border-radius: 16px; font-size: 0.7rem; text-align: center; color: #334155; }
-        .device-badge { font-size: 0.6rem; color: #6b7280; margin-top: 4px; }
+        .refresh-icon { background: none; border: none; font-size: 0.7rem; cursor: pointer; padding: 2px 6px; border-radius: 20px; transition: all 0.2s; }
+        .refresh-icon:hover { background: #e2e8f0; }
+        .refresh-icon:active { transform: rotate(90deg); }
     </style>
 </head>
 <body>
 <div class="app" id="app"></div>
 
 <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxuNCe55LIHqrxe11JofE7kWMW6CZKxazGlqzUVmNO4Yu1unR7HADRSTO2tTPbR-4Mdkw/exec"; // REPLACE WITH YOUR ACTUAL URL
+    // ==================== CONFIGURATION ====================
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzwcJ5bL7EpsvViaBuLT_IBYE4sCaIbN3O7ByTt-0-AvZSJNWAOvV_q303GaYr08_gk/exec";
     
     // ==================== ONLINE USER TRACKING ====================
     let sessionId = null;
     let heartbeatInterval = null;
     let onlineCountInterval = null;
+    let statsRefreshInterval = null;
     
     function generateSessionId() {
-        return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${navigator.userAgent.substring(0, 20)}`;
+        return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
     
     async function checkIn(userName) {
@@ -167,12 +230,60 @@
         return 0;
     }
     
+    // ==================== GET MY UPDATES COUNT ====================
+    async function getMyUpdates(userName) {
+        try {
+            const response = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`);
+            const result = await response.json();
+            if (result.success) {
+                updateMyUpdatesDisplay(result.myCount);
+                return result.myCount;
+            } else {
+                updateMyUpdatesDisplay(0);
+            }
+        } catch (err) {
+            console.error("Get my updates error:", err);
+            updateMyUpdatesDisplay(0);
+        }
+        return 0;
+    }
+    
+    // ==================== GET ALL USERS PERFORMANCE (Total Updates) ====================
+    async function getAllUsersPerformance() {
+        try {
+            const response = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`);
+            const result = await response.json();
+            if (result.success) {
+                updateAllUsersDisplay(result.totalUpdates);
+                return result.totalUpdates;
+            } else {
+                updateAllUsersDisplay(0);
+            }
+        } catch (err) {
+            console.error("Get all users performance error:", err);
+            updateAllUsersDisplay(0);
+        }
+        return 0;
+    }
+    
+    function updateMyUpdatesDisplay(count) {
+        const myUpdatesSpan = document.getElementById("myUpdatesValue");
+        if (myUpdatesSpan) {
+            myUpdatesSpan.innerText = count;
+        }
+    }
+    
+    function updateAllUsersDisplay(count) {
+        const allUsersSpan = document.getElementById("allUsersValue");
+        if (allUsersSpan) {
+            allUsersSpan.innerText = count;
+        }
+    }
+    
     function updateOnlineCountDisplay(count) {
-        const countSpan = document.getElementById("liveCountNumber");
-        if (countSpan) {
-            countSpan.innerText = count;
-            countSpan.style.animation = "none";
-            setTimeout(() => { if(countSpan) countSpan.style.animation = ""; }, 100);
+        const onlineCountSpan = document.getElementById("onlineCountValue");
+        if (onlineCountSpan) {
+            onlineCountSpan.innerText = count;
         }
     }
     
@@ -200,7 +311,22 @@
         }
     }
     
-    // ==================== REST OF YOUR APP CODE ====================
+    function startStatsRefresh(userName) {
+        if (statsRefreshInterval) clearInterval(statsRefreshInterval);
+        statsRefreshInterval = setInterval(() => {
+            getMyUpdates(userName);
+            getAllUsersPerformance();
+        }, 30000);
+    }
+    
+    function stopStatsRefresh() {
+        if (statsRefreshInterval) {
+            clearInterval(statsRefreshInterval);
+            statsRefreshInterval = null;
+        }
+    }
+    
+    // ==================== KYC APP CODE ====================
     const COL_SANSAD = 3;
     const COL_JOB_CARD = 4;
     const COL_APPLICANT_NAME = 6;
@@ -318,6 +444,8 @@
                     if(filteredRecord) renderSingleRecord(filteredRecord);
                 }
                 showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success");
+                getMyUpdates(currentUser.userName);
+                getAllUsersPerformance();
             } else { showToast(`❌ Failed: ${result?.error || "Unknown"}`, "error"); }
         } catch(err) { showToast(`❌ Error: ${err.message}`, "error"); }
         hideProgress();
@@ -358,6 +486,8 @@
             if(updatedMaster) renderSingleRecord(updatedMaster);
         }
         showToast(`✅ Completed. ${total - failed.length}/${total} successful`, "success");
+        getMyUpdates(currentUser.userName);
+        getAllUsersPerformance();
     }
 
     function saveToLocalCache(records) { localStorage.setItem(CACHE_KEY, JSON.stringify(records)); }
@@ -427,6 +557,10 @@
             populateSansadDropdown();
             resetFilters();
             if(!isAuto) showToast(`📥 Synced. ${getActiveRecords().length} pending records shown`, "success");
+            if(currentUser) {
+                getMyUpdates(currentUser.userName);
+                getAllUsersPerformance();
+            }
         } catch(err) {
             console.error(err);
             if(!isAuto && container) container.innerHTML = `<div class="empty-card">❌ Sync failed. <button onclick="document.getElementById('syncBtn')?.click()" style="margin-top:12px;padding:8px 16px;background:#ec4899;border:none;border-radius:20px;color:white;">Retry</button></div>`;
@@ -520,6 +654,8 @@
                 showToast("✅ Updated! Record hidden from active list.", "success");
                 filteredRecord = null;
                 resetFilters();
+                getMyUpdates(currentUser.userName);
+                getAllUsersPerformance();
                 return true;
             } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; }
         } catch(err) { hideProgress(); showToast(`❌ Network error`, "error"); return false; }
@@ -557,7 +693,7 @@
         if(match) { filteredRecord = match; renderSingleRecord(match); } else { renderNoMatch(); } 
     }
 
-    // Auth Functions
+    // ==================== AUTHENTICATION ====================
     async function handleLogin(username, password) {
         const loginBtn = document.getElementById("loginBtn");
         setButtonLoading(loginBtn, true);
@@ -570,16 +706,15 @@
                 currentUser = { userName: data.userName || username, fullName: data.fullName || username, permission: data.permission || "Surveyor" };
                 localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
                 
-                // Start online tracking with multi-device check
                 const checkInSuccess = await checkIn(currentUser.userName);
                 if (checkInSuccess === false) {
-                    // Already logged in elsewhere
                     localStorage.removeItem(SESSION_KEY);
                     return;
                 }
                 
                 startHeartbeat();
                 startOnlineCountRefresh();
+                startStatsRefresh(currentUser.userName);
                 
                 setTimeout(() => renderMainApp(), 500);
             } else {
@@ -663,6 +798,7 @@
     function logout() { 
         stopHeartbeat();
         stopOnlineCountRefresh();
+        stopStatsRefresh();
         checkOut();
         showToast("👋 Logged out successfully", "info"); 
         localStorage.removeItem(SESSION_KEY); 
@@ -673,11 +809,51 @@
 
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
-            <div class="user-header"><div class="user-info"><span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span><span class="user-role">${escapeHtml(currentUser.permission || "Surveyor")}</span><div class="device-badge">🔒 Single device session active</div></div><button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div class="header"><div class="online-badge-container"><div class="live-counter"><span class="pulse-dot"></span> 👥 Online: <span id="liveCountNumber">0</span></div></div><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready (completed hidden)</div></div>
-            <div class="queue-bar" id="queueBar" style="display:none;"><div class="queue-info"><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn" style="margin-right:8px;">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
-            <div class="sync-container"><div class="sync-info"><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
-            <div class="filter-section"><div class="filter-title">🔍 Select Pending Record (remarks empty)</div><select id="filterSansad" class="filter-select"><option>Loading...</option></select><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select><button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
+            <div class="user-header">
+                <div class="user-info">
+                    <span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span>
+                    <span class="user-role">${escapeHtml(currentUser.permission || "Surveyor")}</span>
+                </div>
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <span class="online-dot-small"></span>
+                        <span class="stat-label">Online:</span>
+                        <span class="stat-value" id="onlineCountValue">0</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">📊 My Updates:</span>
+                        <span class="stat-value" id="myUpdatesValue">0</span>
+                        <button class="refresh-icon" onclick="if(currentUser) getMyUpdates(currentUser.userName)" title="Refresh">⟳</button>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">👥 All Users:</span>
+                        <span class="stat-value" id="allUsersValue">0</span>
+                        <button class="refresh-icon" onclick="getAllUsersPerformance()" title="Refresh">⟳</button>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+            </div>
+            <div class="header">
+                <h1>📋 KYC Portal</h1>
+                <div class="sync-status" id="syncStatus">📦 Ready (completed hidden)</div>
+            </div>
+            <div class="queue-bar" id="queueBar" style="display:none;">
+                <div class="queue-info"><span class="queue-badge" id="queueCount">0 pending</span></div>
+                <div><button class="upload-btn" id="uploadOneBtn" style="margin-right:8px;">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div>
+            </div>
+            <div class="sync-container">
+                <div class="sync-info"><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div>
+                <button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button>
+            </div>
+            <div class="filter-section">
+                <div class="filter-title">🔍 Select Pending Record (remarks empty)</div>
+                <select id="filterSansad" class="filter-select"><option>Loading...</option></select>
+                <select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select>
+                <select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select>
+                <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button>
+            </div>
             <div id="cardContainer"><div class="waiting-card"><div class="loading-spinner"></div><div>Loading data...</div></div></div>
             <div class="footer-note">✅ Once "REMARKS" filled, record is hidden automatically. 🔒 One account per person, one device at a time.</div>
         `;
@@ -694,6 +870,8 @@
         document.getElementById("logoutBtn").onclick = logout;
         setTimeout(() => syncData(true), 300);
         getOnlineCount();
+        getMyUpdates(currentUser.userName);
+        getAllUsersPerformance();
     }
 
     function init() {
@@ -702,11 +880,11 @@
             try { 
                 currentUser = JSON.parse(savedSession); 
                 renderMainApp();
-                // Re-establish online presence
                 checkIn(currentUser.userName).then(success => {
                     if (success !== false) {
                         startHeartbeat();
                         startOnlineCountRefresh();
+                        startStatsRefresh(currentUser.userName);
                     }
                 });
             } catch(e) { renderAuthPage(); } 
@@ -716,6 +894,7 @@
         window.addEventListener("beforeunload", () => {
             checkOut();
             stopHeartbeat();
+            stopStatsRefresh();
         });
     }
     init();
