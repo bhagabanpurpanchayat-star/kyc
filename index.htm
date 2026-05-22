@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Secure Access</title>
+    <title>KYC Portal - Secure Access | Hide Completed Remarks</title>
     <style>
         * {
             margin: 0;
@@ -533,6 +533,15 @@
             gap: 8px;
             flex-wrap: wrap;
         }
+        
+        .completed-hint {
+            background: #e2e8f0;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #334155;
+        }
     </style>
 </head>
 <body>
@@ -540,7 +549,6 @@
 
 <script>
     // ==================== CONFIG ====================
-    // IMPORTANT: Replace this URL with your Google Apps Script Web App URL
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdWyX8vjiToqRE4NY94LPpkhvNGrJNZqdPPsQRdC-WJ4ItAOhw6iYpLaOx-cvrbQdC/exec";
     
     const COL_SANSAD = 3;
@@ -564,14 +572,14 @@
     ];
 
     let currentUser = null;
-    let allRecords = [];
-    let filteredRecord = null;
+    let allRecords = [];          // master list from sheet
+    let filteredRecord = null;    // currently selected non-completed record
     let selectedSansad = "", selectedJobCard = "", selectedApplicant = "";
     let pendingQueue = [];
     let isAutoSyncing = false;
 
-    const CACHE_KEY = "kyc_records_v5";
-    const QUEUE_KEY = "kyc_queue_v5";
+    const CACHE_KEY = "kyc_records_v6";
+    const QUEUE_KEY = "kyc_queue_v6";
     const SESSION_KEY = "kyc_session";
 
     function escapeHtml(str) { if (!str) return ""; return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
@@ -652,7 +660,14 @@
                 const cached = allRecords.find(r => r.sheetRow === item.sheetRow);
                 if(cached) cached.currentRemark = item.newRemarks;
                 saveToLocalCache(allRecords);
-                if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord.currentRemark = item.newRemarks; renderSingleRecord(filteredRecord); }
+                // After successful update, if current filtered record was just completed, reset filters to avoid showing hidden row
+                if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) {
+                    filteredRecord = null;
+                    resetFilters();
+                    showToast("✅ Record updated & hidden (remarks filled)", "success");
+                } else {
+                    if(filteredRecord) renderSingleRecord(filteredRecord);
+                }
                 showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success");
             } else { showToast(`❌ Failed: ${result?.error || "Unknown"}`, "error"); }
         } catch(err) { showToast(`❌ Error: ${err.message}`, "error"); }
@@ -685,12 +700,54 @@
         saveQueue();
         saveToLocalCache(allRecords);
         hideProgress();
+        // if filtered record got completed, reset selection
+        if(filteredRecord && filteredRecord.currentRemark && filteredRecord.currentRemark.trim() !== "") {
+            filteredRecord = null;
+            resetFilters();
+            showToast("✅ Some completed records hidden", "info");
+        } else if(filteredRecord) {
+            const updatedMaster = allRecords.find(r => r.sheetRow === filteredRecord.sheetRow);
+            if(updatedMaster) renderSingleRecord(updatedMaster);
+        }
         showToast(`✅ Completed. ${total - failed.length}/${total} successful`, "success");
-        if(filteredRecord) { const updated = allRecords.find(r => r.sheetRow === filteredRecord.sheetRow); if(updated) renderSingleRecord(updated); }
     }
 
     function saveToLocalCache(records) { localStorage.setItem(CACHE_KEY, JSON.stringify(records)); }
     function loadFromLocalCache() { const saved = localStorage.getItem(CACHE_KEY); if(saved) { allRecords = JSON.parse(saved); return true; } return false; }
+
+    // ========== IMPORTANT: Filter out records where remarks is already filled ==========
+    function getActiveRecords() {
+        // Return only records where currentRemark is empty (null, undefined, or empty string)
+        // Completed rows are HIDDEN from dropdown and selection
+        return allRecords.filter(record => !record.currentRemark || record.currentRemark.trim() === "");
+    }
+
+    function getUniqueValuesActive(field) { 
+        const activeRecords = getActiveRecords();
+        const vals = new Set(); 
+        activeRecords.forEach(r => { if(r[field] && r[field] !== "—") vals.add(r[field]); }); 
+        return Array.from(vals).sort(); 
+    }
+    
+    function getJobCardsActive(sansad) { 
+        const activeRecords = getActiveRecords();
+        const cards = new Set(); 
+        activeRecords.forEach(r => { if(r.sansad === sansad && r.jobCard !== "—") cards.add(r.jobCard); }); 
+        return Array.from(cards).sort(); 
+    }
+    
+    function getApplicantsActive(sansad, jobCard) { 
+        const activeRecords = getActiveRecords();
+        const apps = new Set(); 
+        activeRecords.forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName !== "—") apps.add(r.applicantName); }); 
+        return Array.from(apps).sort(); 
+    }
+    
+    function findActiveRecord() { 
+        if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; 
+        const activeRecords = getActiveRecords();
+        return activeRecords.find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); 
+    }
 
     async function syncData(isAuto = false) {
         if(isAutoSyncing) return;
@@ -716,12 +773,15 @@
             }
             allRecords = mapped;
             saveToLocalCache(allRecords);
-            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerText = `${allRecords.length} records`;
+            if(document.getElementById("recordCount")) {
+                const activeCount = getActiveRecords().length;
+                document.getElementById("recordCount").innerHTML = `${activeCount} active / ${allRecords.length} total <span style="color:#10b981;">(hidden completed)</span>`;
+            }
             if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`;
-            if(document.getElementById("syncStatus")) document.getElementById("syncStatus").innerHTML = "✅ Data ready";
+            if(document.getElementById("syncStatus")) document.getElementById("syncStatus").innerHTML = "✅ Data ready (completed hidden)";
             populateSansadDropdown();
             resetFilters();
-            if(!isAuto) showToast(`📥 Synced ${allRecords.length} records`, "success");
+            if(!isAuto) showToast(`📥 Synced. ${getActiveRecords().length} pending records shown`, "success");
         } catch(err) {
             console.error(err);
             if(!isAuto && container) container.innerHTML = `<div class="empty-card">❌ Sync failed. <button onclick="document.getElementById('syncBtn')?.click()" style="margin-top:12px;padding:8px 16px;background:#ec4899;border:none;border-radius:20px;color:white;">Retry</button></div>`;
@@ -732,17 +792,70 @@
         }
     }
 
-    function getUniqueValues(field) { const vals = new Set(); allRecords.forEach(r => { if(r[field] && r[field] !== "—") vals.add(r[field]); }); return Array.from(vals).sort(); }
-    function getJobCards(sansad) { const cards = new Set(); allRecords.forEach(r => { if(r.sansad === sansad && r.jobCard !== "—") cards.add(r.jobCard); }); return Array.from(cards).sort(); }
-    function getApplicants(sansad, jobCard) { const apps = new Set(); allRecords.forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName !== "—") apps.add(r.applicantName); }); return Array.from(apps).sort(); }
-    function findRecord() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; return allRecords.find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); }
+    function populateSansadDropdown() { 
+        const list = getUniqueValuesActive("sansad"); 
+        const select = document.getElementById("filterSansad"); 
+        if(!select) return; 
+        select.innerHTML = '<option value="">1️⃣ Select Sansad</option>'; 
+        list.forEach(v => select.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); 
+    }
     
-    function populateSansadDropdown() { const list = getUniqueValues("sansad"); const select = document.getElementById("filterSansad"); if(!select) return; select.innerHTML = '<option value="">1️⃣ Select Sansad</option>'; list.forEach(v => select.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); }
-    function updateJobCardDropdown() { const cards = getJobCards(selectedSansad); const jobSelect = document.getElementById("filterJobCard"); if(jobSelect) { jobSelect.innerHTML = '<option value="">2️⃣ Select Job Card</option>'; cards.forEach(v => jobSelect.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); jobSelect.disabled = cards.length === 0; } selectedJobCard = ""; selectedApplicant = ""; const appSelect = document.getElementById("filterApplicant"); if(appSelect) { appSelect.innerHTML = '<option value="">3️⃣ Select Applicant</option>'; appSelect.disabled = true; } filteredRecord = null; renderWaiting(); }
-    function updateApplicantDropdown() { const apps = getApplicants(selectedSansad, selectedJobCard); const appSelect = document.getElementById("filterApplicant"); if(appSelect) { appSelect.innerHTML = '<option value="">3️⃣ Select Applicant</option>'; apps.forEach(v => appSelect.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); appSelect.disabled = apps.length === 0; } selectedApplicant = ""; filteredRecord = null; renderWaiting(); }
-    function resetFilters() { selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; updateJobCardDropdown(); filteredRecord = null; renderWaiting(); }
-    function renderWaiting() { const container = document.getElementById("cardContainer"); if(!container) return; if(!allRecords.length) container.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else container.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant</div>`; }
-    function renderNoMatch() { const container = document.getElementById("cardContainer"); if(container) container.innerHTML = `<div class="waiting-card">⚠️ No matching record found</div>`; }
+    function updateJobCardDropdown() { 
+        const cards = getJobCardsActive(selectedSansad); 
+        const jobSelect = document.getElementById("filterJobCard"); 
+        if(jobSelect) { 
+            jobSelect.innerHTML = '<option value="">2️⃣ Select Job Card</option>'; 
+            cards.forEach(v => jobSelect.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); 
+            jobSelect.disabled = cards.length === 0; 
+        } 
+        selectedJobCard = ""; 
+        selectedApplicant = ""; 
+        const appSelect = document.getElementById("filterApplicant"); 
+        if(appSelect) { 
+            appSelect.innerHTML = '<option value="">3️⃣ Select Applicant</option>'; 
+            appSelect.disabled = true; 
+        } 
+        filteredRecord = null; 
+        renderWaiting(); 
+    }
+    
+    function updateApplicantDropdown() { 
+        const apps = getApplicantsActive(selectedSansad, selectedJobCard); 
+        const appSelect = document.getElementById("filterApplicant"); 
+        if(appSelect) { 
+            appSelect.innerHTML = '<option value="">3️⃣ Select Applicant</option>'; 
+            apps.forEach(v => appSelect.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`); 
+            appSelect.disabled = apps.length === 0; 
+        } 
+        selectedApplicant = ""; 
+        filteredRecord = null; 
+        renderWaiting(); 
+    }
+    
+    function resetFilters() { 
+        selectedSansad = ""; 
+        selectedJobCard = ""; 
+        selectedApplicant = ""; 
+        const sansad = document.getElementById("filterSansad"); 
+        if(sansad) sansad.value = ""; 
+        updateJobCardDropdown(); 
+        filteredRecord = null; 
+        renderWaiting(); 
+    }
+    
+    function renderWaiting() { 
+        const container = document.getElementById("cardContainer"); 
+        if(!container) return; 
+        const activeCount = getActiveRecords().length;
+        if(!allRecords.length) container.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; 
+        else if(activeCount === 0) container.innerHTML = `<div class="waiting-card">✅ All KYC records completed! (No pending remarks)</div>`;
+        else container.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant (showing ${activeCount} pending)</div>`; 
+    }
+    
+    function renderNoMatch() { 
+        const container = document.getElementById("cardContainer"); 
+        if(container) container.innerHTML = `<div class="waiting-card">⚠️ No matching pending record found (maybe completed?)</div>`; 
+    }
 
     async function directUpdate(record, newRemark) {
         if(!newRemark) { showToast("⚠️ Select a remark", "error"); return false; }
@@ -759,8 +872,10 @@
                 record.currentRemark = newRemark;
                 saveToLocalCache(allRecords);
                 hideProgress();
-                showToast("✅ Updated! Please Contact Gram Panchayat Office", "warning");
-                renderSingleRecord(record);
+                showToast("✅ Updated! Record hidden from active list.", "success");
+                // After update, clear current selection because row is now completed
+                filteredRecord = null;
+                resetFilters();
                 return true;
             } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; }
         } catch(err) { hideProgress(); showToast(`❌ Network error`, "error"); return false; }
@@ -770,7 +885,7 @@
         if(!record) { renderWaiting(); return; }
         const hasRemark = record.currentRemark && record.currentRemark.trim() !== "";
         let optionsHtml = `<option value="">-- Select remark --</option>`;
-        DROPDOWN_OPTIONS.forEach(opt => { const selected = (record.currentRemark === opt) ? 'selected' : ''; optionsHtml += `<option value="${escapeHtml(opt)}" ${selected}>${escapeHtml(opt)}</option>`; });
+        DROPDOWN_OPTIONS.forEach(opt => { optionsHtml += `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`; });
         const html = `
             <div class="data-card">
                 <div class="field-row"><div class="field-label">🏛️ Sansad</div><div class="field-value">${escapeHtml(record.sansad)}</div></div>
@@ -778,72 +893,56 @@
                 <div class="field-row"><div class="field-label">👤 Applicant Name</div><div class="field-value">${escapeHtml(record.applicantName)}</div></div>
                 <div class="field-row"><div class="field-label">📌 Existing Reason</div><div class="field-value"><span class="reason-value">${escapeHtml(record.reason)}</span></div></div>
                 <div class="update-section">
-                    <select class="remark-select" id="remarkSelect" ${hasRemark ? 'disabled' : ''}>${optionsHtml}</select>
-                    ${!hasRemark ? `<div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div>` : `<div class="readonly-badge">🔒 Already Updated. Contact Gram Panchayat Office.</div>`}
+                    <select class="remark-select" id="remarkSelect">${optionsHtml}</select>
+                    <div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div>
                 </div>
+                <div class="completed-hint">✅ After update, this record will be hidden automatically.</div>
             </div>
         `;
         const container = document.getElementById("cardContainer");
         if(container) container.innerHTML = html;
-        if(!hasRemark) {
-            const updateBtn = document.getElementById("updateNowBtn");
-            const queueBtn = document.getElementById("saveQueueBtn");
-            const selectEl = document.getElementById("remarkSelect");
-            if(updateBtn) updateBtn.onclick = async () => { const val = selectEl.value; if(!val) { showToast("Select remark","error"); return; } await directUpdate(record, val); };
-            if(queueBtn) queueBtn.onclick = () => { const val = selectEl.value; if(!val) { showToast("Select remark","error"); return; } if(addToQueue(record, val)) { selectEl.disabled = true; queueBtn.disabled = true; updateBtn.disabled = true; } };
-        }
+        const updateBtn = document.getElementById("updateNowBtn");
+        const queueBtn = document.getElementById("saveQueueBtn");
+        const selectEl = document.getElementById("remarkSelect");
+        if(updateBtn) updateBtn.onclick = async () => { const val = selectEl.value; if(!val) { showToast("Select remark","error"); return; } await directUpdate(record, val); };
+        if(queueBtn) queueBtn.onclick = () => { const val = selectEl.value; if(!val) { showToast("Select remark","error"); return; } if(addToQueue(record, val)) { selectEl.disabled = true; queueBtn.disabled = true; updateBtn.disabled = true; } };
     }
 
-    function checkAndRender() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); return; } const match = findRecord(); if(match) { filteredRecord = match; renderSingleRecord(match); } else { renderNoMatch(); } }
+    function checkAndRender() { 
+        if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); return; } 
+        const match = findActiveRecord(); 
+        if(match) { 
+            filteredRecord = match; 
+            renderSingleRecord(match); 
+        } else { 
+            renderNoMatch(); 
+        } 
+    }
 
-    // ==================== AUTHENTICATION WITH BETTER ERROR HANDLING ====================
+    // ==================== AUTHENTICATION ====================
     async function handleLogin(username, password) {
         const loginBtn = document.getElementById("loginBtn");
         setButtonLoading(loginBtn, true);
-        
         try {
-            // Make sure URL is correct and accessible
             const authUrl = `${WEB_APP_URL}?action=auth&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-            console.log("Auth URL:", authUrl);
-            
             const response = await fetch(authUrl);
-            
-            // Check if response is OK
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            console.log("Auth response:", data);
-            
             if (data && data.success === true) {
-                showToast(`🎉 Welcome back, ${data.fullName || username}!`, "success");
-                currentUser = { 
-                    userName: data.userName || username, 
-                    fullName: data.fullName || username, 
-                    permission: data.permission || "Surveyor" 
-                };
+                showToast(`🎉 Welcome, ${data.fullName || username}!`, "success");
+                currentUser = { userName: data.userName || username, fullName: data.fullName || username, permission: data.permission || "Surveyor" };
                 localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
                 setTimeout(() => renderMainApp(), 500);
             } else {
-                const errorMsg = data?.error || "Invalid username or password";
+                const errorMsg = data?.error || "Invalid credentials";
                 const errorDiv = document.getElementById("authError");
-                if(errorDiv) {
-                    if(data?.permissionDenied) {
-                        errorDiv.innerHTML = `<div class="error-msg contact-admin">⚠️ ${errorMsg}<br><small>Please contact GP admin to get access.</small></div>`;
-                    } else {
-                        errorDiv.innerHTML = `<div class="error-msg">⚠️ ${errorMsg}</div>`;
-                    }
-                }
+                if(errorDiv) errorDiv.innerHTML = `<div class="error-msg">⚠️ ${errorMsg}</div>`;
                 showToast(errorMsg, "error");
             }
         } catch(error) {
-            console.error("Login error:", error);
             const errorDiv = document.getElementById("authError");
-            if(errorDiv) {
-                errorDiv.innerHTML = `<div class="error-msg">⚠️ Connection failed. Please check if the Google Apps Script is deployed correctly.<br><small>${error.message}</small></div>`;
-            }
-            showToast("Connection failed. Check console for details.", "error");
+            if(errorDiv) errorDiv.innerHTML = `<div class="error-msg">⚠️ Connection failed. Check script URL.</div>`;
+            showToast("Connection failed", "error");
         } finally {
             setButtonLoading(loginBtn, false);
         }
@@ -852,45 +951,24 @@
     async function handleRegister(fullName, username, password) {
         const regBtn = document.getElementById("signupBtn");
         setButtonLoading(regBtn, true);
-        
         try {
             const payload = new URLSearchParams();
             payload.append("action", "register");
             payload.append("fullName", fullName);
             payload.append("username", username);
             payload.append("password", password);
-            
-            const response = await fetch(WEB_APP_URL, { 
-                method: "POST", 
-                headers: { "Content-Type": "application/x-www-form-urlencoded" }, 
-                body: payload 
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
+            const response = await fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: payload });
             const data = await response.json();
-            console.log("Register response:", data);
-            
             const errorDiv = document.getElementById("authError");
-            if(errorDiv) {
-                if(data && data.success) {
-                    errorDiv.innerHTML = `<div class="success-msg">🎉 ${data.message || "Registration successful!"}<br>Please wait for admin approval.</div>`;
-                    showToast("Account created! Redirecting to login...", "success");
-                    setTimeout(() => renderAuthPage(), 2500);
-                } else {
-                    errorDiv.innerHTML = `<div class="error-msg">⚠️ ${data?.error || "Registration failed"}</div>`;
-                    showToast(data?.error || "Registration failed", "error");
-                }
+            if(data && data.success) {
+                errorDiv.innerHTML = `<div class="success-msg">🎉 ${data.message} Please wait for admin approval.</div>`;
+                showToast("Account created! Redirecting to login...", "success");
+                setTimeout(() => renderAuthPage(), 2500);
+            } else {
+                errorDiv.innerHTML = `<div class="error-msg">⚠️ ${data?.error || "Registration failed"}</div>`;
             }
         } catch(error) {
-            console.error("Register error:", error);
-            const errorDiv = document.getElementById("authError");
-            if(errorDiv) {
-                errorDiv.innerHTML = `<div class="error-msg">⚠️ Connection failed. Please try again.<br><small>${error.message}</small></div>`;
-            }
-            showToast("Registration failed. Check network.", "error");
+            document.getElementById("authError").innerHTML = `<div class="error-msg">⚠️ Network error</div>`;
         } finally {
             setButtonLoading(regBtn, false);
         }
@@ -900,77 +978,49 @@
         document.getElementById("app").innerHTML = `
             <div class="auth-card">
                 <div class="auth-title">🔐 KYC Portal</div>
-                <div class="auth-sub">MGNREGA • Secure Access</div>
+                <div class="auth-sub">MGNREGA • Hide Completed Records</div>
                 <div id="authError"></div>
-                <div class="input-group"><label>👤 User Name</label><input type="text" id="loginUsername" placeholder="Enter Username" autocomplete="username"></div>
-                <div class="input-group"><label>🔒 Password</label><input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password"></div>
+                <div class="input-group"><label>👤 User Name</label><input type="text" id="loginUsername" placeholder="Enter Username"></div>
+                <div class="input-group"><label>🔒 Password</label><input type="password" id="loginPassword" placeholder="Password"></div>
                 <button class="auth-btn" id="loginBtn">Sign In</button>
                 <div class="switch-mode">New user? <span id="showSignup">Create Account</span></div>
             </div>
         `;
-        document.getElementById("loginBtn").onclick = () => { 
-            const u = document.getElementById("loginUsername").value.trim(); 
-            const p = document.getElementById("loginPassword").value.trim(); 
-            if(u && p) handleLogin(u,p); 
-            else showToast("Enter username and password", "error"); 
-        };
+        document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(); const p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); };
         document.getElementById("showSignup").onclick = () => renderSignupPage();
-        
-        // Allow Enter key to submit
-        const passwordInput = document.getElementById("loginPassword");
-        if(passwordInput) {
-            passwordInput.addEventListener("keypress", (e) => {
-                if(e.key === "Enter") document.getElementById("loginBtn").click();
-            });
-        }
     }
 
     function renderSignupPage() {
         document.getElementById("app").innerHTML = `
             <div class="auth-card">
                 <div class="auth-title">📝 Create Account</div>
-                <div class="auth-sub">Register as Surveyor</div>
                 <div id="authError"></div>
-                <div class="input-group"><label>📋 Surveyor Name</label><input type="text" id="signupName" placeholder="Full Name" autocomplete="name"></div>
-                <div class="input-group"><label>👤 User Name</label><input type="text" id="signupUsername" placeholder="Username (min 3 chars)" autocomplete="username"></div>
-                <div class="input-group"><label>🔒 Password</label><input type="password" id="signupPassword" placeholder="Password (min 4 chars)" autocomplete="new-password"></div>
+                <div class="input-group"><label>📋 Surveyor Name</label><input type="text" id="signupName"></div>
+                <div class="input-group"><label>👤 User Name</label><input type="text" id="signupUsername"></div>
+                <div class="input-group"><label>🔒 Password</label><input type="password" id="signupPassword"></div>
                 <button class="auth-btn" id="signupBtn">Register</button>
                 <div class="switch-mode">Already have account? <span id="showLogin">Sign In</span></div>
             </div>
         `;
-        document.getElementById("signupBtn").onclick = () => { 
-            const n = document.getElementById("signupName").value.trim(); 
-            const u = document.getElementById("signupUsername").value.trim(); 
-            const p = document.getElementById("signupPassword").value.trim(); 
-            if(n && u && p) {
-                if(u.length < 3) showToast("Username must be at least 3 characters", "error");
-                else if(p.length < 4) showToast("Password must be at least 4 characters", "error");
-                else handleRegister(n,u,p);
-            } else showToast("All fields required", "error"); 
-        };
+        document.getElementById("signupBtn").onclick = () => { const n = document.getElementById("signupName").value.trim(); const u = document.getElementById("signupUsername").value.trim(); const p = document.getElementById("signupPassword").value.trim(); if(n && u && p) handleRegister(n,u,p); else showToast("All fields required","error"); };
         document.getElementById("showLogin").onclick = () => renderAuthPage();
     }
 
-    function logout() { 
-        showToast("👋 Logged out successfully", "info");
-        localStorage.removeItem(SESSION_KEY); 
-        currentUser = null; 
-        renderAuthPage(); 
-    }
+    function logout() { showToast("👋 Logged out", "info"); localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); }
 
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
             <div class="user-header"><div class="user-info"><span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span><span class="user-role">${escapeHtml(currentUser.permission || "Surveyor")}</span></div><button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div class="header"><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready</div></div>
+            <div class="header"><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready (completed hidden)</div></div>
             <div class="queue-bar" id="queueBar" style="display:none;"><div class="queue-info"><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn" style="margin-right:8px;">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
-            <div class="sync-container"><div class="sync-info"><span class="record-count" id="recordCount">0 records</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
-            <div class="filter-section"><div class="filter-title">🔍 Select Record</div><select id="filterSansad" class="filter-select"><option>Loading...</option></select><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select><button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
+            <div class="sync-container"><div class="sync-info"><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
+            <div class="filter-section"><div class="filter-title">🔍 Select Pending Record (remarks empty)</div><select id="filterSansad" class="filter-select"><option>Loading...</option></select><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select><button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
             <div id="cardContainer"><div class="waiting-card"><div class="loading-spinner"></div><div>Loading data...</div></div></div>
-            <div class="footer-note">💡 <strong>Remarks Options:</strong> Biometric update required | Migrant worker | Aadhar name mismatch | Gender mismatch | Death of worker | Not included in SIR | Unwilling to work | Face Authentication Failed | Shifted worker | Aadhar Authentication Failed</div>
+            <div class="footer-note">✅ Once "REMARKS" filled, record is hidden automatically from selection.</div>
         `;
         loadQueue();
         const hasCache = loadFromLocalCache();
-        if(hasCache && allRecords.length) { populateSansadDropdown(); resetFilters(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerText = `${allRecords.length} records`; renderWaiting(); }
+        if(hasCache && allRecords.length) { populateSansadDropdown(); resetFilters(); const activeCount = getActiveRecords().length; if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${activeCount} active / ${allRecords.length} total`; renderWaiting(); }
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
         document.getElementById("uploadAllBtn").onclick = uploadAllFromQueue;
@@ -984,12 +1034,8 @@
 
     function init() {
         const savedSession = localStorage.getItem(SESSION_KEY);
-        if(savedSession) {
-            try { 
-                currentUser = JSON.parse(savedSession); 
-                renderMainApp(); 
-            } catch(e) { renderAuthPage(); }
-        } else { renderAuthPage(); }
+        if(savedSession) { try { currentUser = JSON.parse(savedSession); renderMainApp(); } catch(e) { renderAuthPage(); } } 
+        else { renderAuthPage(); }
     }
     init();
 </script>
