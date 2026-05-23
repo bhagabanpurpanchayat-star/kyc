@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Smart Dashboard with Correct Counts</title>
+    <title>KYC Portal - Performance Dashboard with Compact Bar Chart</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; padding-bottom: 32px; }
@@ -82,9 +82,85 @@
         .toast-notification.error { background: #ef4444; }
         .toast-notification.warning { background: #f59e0b; }
         
-        .header { background: rgba(255,255,255,0.95); border-radius: 28px; padding: 20px 18px; margin-bottom: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-        .header h1 { font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .sync-status { background: linear-gradient(135deg, #10b98120, #05966920); display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; margin-top: 8px; color: #065f46; font-weight: 600; }
+        /* Header with Compact Bar Chart */
+        .header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 28px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header-left { flex: 1; }
+        .header-left h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sync-status { background: linear-gradient(135deg, #10b98120, #05966920); display: inline-block; padding: 3px 10px; border-radius: 40px; font-size: 0.6rem; margin-top: 5px; color: #065f46; font-weight: 600; }
+        
+        /* Compact Bar Chart - Thin bars, Roman numerals, counts on top */
+        .chart-container {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 8px 10px;
+            min-width: 180px;
+            border: 1px solid #e2e8f0;
+        }
+        .chart-title {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .chart-bars {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            align-items: flex-end;
+            height: 70px;
+        }
+        .chart-bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+        .bar-value-top {
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 3px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .bar {
+            width: 100%;
+            max-width: 24px;
+            background: linear-gradient(180deg, #c084fc, #8b5cf6);
+            border-radius: 4px 4px 3px 3px;
+            min-height: 3px;
+            transition: height 0.3s ease;
+            margin: 0 auto;
+        }
+        .bar-label {
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #475569;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .chart-legend {
+            font-size: 0.5rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 5px;
+        }
+        
         .sync-container { background: rgba(255,255,255,0.95); border-radius: 60px; padding: 6px 16px 6px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         .record-count { font-size: 0.7rem; color: #475569; font-weight: 600; }
         .last-sync { font-size: 0.6rem; color: #6b7280; }
@@ -125,15 +201,6 @@
         }
         .filter-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; }
         .filter-select:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.7; }
-        .no-data-msg {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 8px;
-        }
         .reset-filter-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 40px; width: 100%; cursor: pointer; font-size: 0.7rem; font-weight: 600; margin-top: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; }
         .reset-filter-btn:active { transform: translateY(1px); }
         
@@ -246,60 +313,128 @@
     function saveToLocalCache(r) { localStorage.setItem(CACHE_KEY, JSON.stringify(r)); }
     function loadFromLocalCache() { const s = localStorage.getItem(CACHE_KEY); if(s) { allRecords = JSON.parse(s); return true; } return false; }
     function getActiveRecords() { return allRecords.filter(r => !r.currentRemark || r.currentRemark.trim() === ""); }
+    function getCompletedRecords() { return allRecords.filter(r => r.currentRemark && r.currentRemark.trim() !== ""); }
+    
+    // Get verification counts per Sansad (completed KYC records)
+    function getVerificationCounts() {
+        const completed = getCompletedRecords();
+        const counts = new Map();
+        completed.forEach(r => {
+            if(r.sansad && r.sansad !== "—") {
+                counts.set(r.sansad, (counts.get(r.sansad) || 0) + 1);
+            }
+        });
+        return counts;
+    }
+    
+    // Convert Sansad name to Roman numeral (I, II, III, IV, V...)
+    // Handles formats like "SANSAD/I", "SANSAD/II", "SANSAD 1", "SANSAD-1", "Sansad I", etc.
+    function toRomanLabel(sansad) {
+        if (!sansad) return "?";
+        
+        // Convert to uppercase for consistent matching
+        const upper = sansad.toUpperCase();
+        
+        // Try to extract Roman numeral after slash (SANSAD/I, SANSAD/II)
+        let slashMatch = upper.match(/\/([IVXLCDM]+)$/);
+        if (slashMatch) {
+            return slashMatch[1];
+        }
+        
+        // Try to extract number at the end
+        let numMatch = upper.match(/(\d+)$/);
+        if (numMatch) {
+            const num = parseInt(numMatch[1]);
+            const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"];
+            return romanNumerals[num] || num.toString();
+        }
+        
+        // Try to extract Roman numeral as a word (SANSAD I, SANSAD II)
+        let romanMatch = upper.match(/\b([IVXLCDM]+)\b/);
+        if (romanMatch && romanMatch[1].length <= 4) {
+            return romanMatch[1];
+        }
+        
+        // If all else fails, return first 3 characters
+        return sansad.substring(0, 3);
+    }
+    
+    function updateBarChart() {
+        const counts = getVerificationCounts();
+        // Sort sansads by their numeric/Roman order for better display
+        const sansads = Array.from(counts.keys()).sort((a, b) => {
+            const getNum = (s) => {
+                const match = s.match(/\d+$/);
+                if (match) return parseInt(match[0]);
+                const romanMatch = s.match(/\/([IVXLCDM]+)$/i);
+                if (romanMatch) {
+                    const roman = romanMatch[1].toUpperCase();
+                    const romanMap = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 };
+                    return romanMap[roman] || 999;
+                }
+                return 999;
+            };
+            return getNum(a) - getNum(b);
+        });
+        
+        const maxCount = Math.max(...Array.from(counts.values()), 1);
+        
+        const chartContainer = document.getElementById("barChartContainer");
+        if(!chartContainer) return;
+        
+        if(sansads.length === 0) {
+            chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No completed records yet</div>`;
+            return;
+        }
+        
+        let barsHtml = `<div class="chart-title">✓ KYC Completed</div><div class="chart-bars">`;
+        sansads.forEach(sansad => {
+            const count = counts.get(sansad) || 0;
+            // Height proportional to count, max 45px, min 8px
+            const height = Math.max(8, Math.min(45, (count / maxCount) * 45));
+            const romanLabel = toRomanLabel(sansad);
+            barsHtml += `
+                <div class="chart-bar-item">
+                    <div class="bar-value-top">${count}</div>
+                    <div class="bar" style="height: ${height}px; background: linear-gradient(180deg, ${getColorForIndex(sansads.indexOf(sansad))}, ${getColorForIndex(sansads.indexOf(sansad), true)});"></div>
+                    <div class="bar-label">${romanLabel}</div>
+                </div>
+            `;
+        });
+        barsHtml += `</div><div class="chart-legend">Verification count</div>`;
+        chartContainer.innerHTML = barsHtml;
+    }
+    
+    function getColorForIndex(idx, isDark = false) {
+        const colors = ["#f59e0b", "#10b981", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+        if(isDark) {
+            const darkColors = ["#d97706", "#059669", "#2563eb", "#dc2626", "#7c3aed", "#db2777", "#0891b2", "#65a30d"];
+            return darkColors[idx % darkColors.length];
+        }
+        return colors[idx % colors.length];
+    }
+    
     function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
     function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
     
-    // CORRECT COUNT FUNCTIONS:
-    // Count of UNIQUE Sansads that have at least one pending record (row without remark)
-    function getUniqueSansadCount() {
-        const activeRecords = getActiveRecords();
-        const uniqueSansads = new Set();
-        activeRecords.forEach(r => {
-            if(r.sansad && r.sansad !== "—") uniqueSansads.add(r.sansad);
-        });
-        return uniqueSansads.size;
-    }
-    
-    // Count of UNIQUE Job Cards under a specific Sansad that have pending records
-    function getUniqueJobCardCount(sansad) {
-        const activeRecords = getActiveRecords();
-        const uniqueJobCards = new Set();
-        activeRecords.forEach(r => {
-            if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") uniqueJobCards.add(r.jobCard);
-        });
-        return uniqueJobCards.size;
-    }
-    
-    // Count of UNIQUE Applicants under a specific Sansad + Job Card that have pending records
-    function getUniqueApplicantCount(sansad, jobCard) {
-        const activeRecords = getActiveRecords();
-        const uniqueApplicants = new Set();
-        activeRecords.forEach(r => {
-            if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") uniqueApplicants.add(r.applicantName);
-        });
-        return uniqueApplicants.size;
-    }
-    
-    // For dropdown lists - get unique values
+    function getUniqueSansadCount() { const uniqueSansads = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") uniqueSansads.add(r.sansad); }); return uniqueSansads.size; }
+    function getUniqueJobCardCount(sansad) { const uniqueJobCards = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") uniqueJobCards.add(r.jobCard); }); return uniqueJobCards.size; }
+    function getUniqueApplicantCount(sansad, jobCard) { const uniqueApplicants = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") uniqueApplicants.add(r.applicantName); }); return uniqueApplicants.size; }
     function getUniqueSansadValues() { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") vals.add(r.sansad); }); return Array.from(vals).sort(); }
     function getUniqueJobCardValues(sansad) { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") vals.add(r.jobCard); }); return Array.from(vals).sort(); }
     function getUniqueApplicantValues(sansad, jobCard) { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") vals.add(r.applicantName); }); return Array.from(vals).sort(); }
     function findActiveRecord() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; return getActiveRecords().find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); }
     
-    async function syncData(isAuto = false) { if(isAutoSyncing) return; isAutoSyncing = true; if(!isAuto && document.getElementById("syncBtn")) document.getElementById("syncBtn").disabled = true; const container = document.getElementById("cardContainer"); if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; try { const res = await fetch(WEB_APP_URL + "?action=getData"); const raw = await res.json(); allRecords = raw.map((row, i) => ({ sheetRow: i+2, sansad: row[COL_SANSAD] || "—", jobCard: row[COL_JOB_CARD] || "—", applicantName: row[COL_APPLICANT_NAME] || "—", reason: row[COL_REASON] || "—", currentRemark: row[COL_NEW_REMARKS] || "" })); saveToLocalCache(allRecords); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads pending`; if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; if(document.getElementById("syncStatus")) document.getElementById("syncStatus").innerHTML = "✅ Data ready (pending records)"; updateFilterDisplays(); resetFilters(); if(!isAuto) showToast(`📥 Synced! ${ac} pending rows across ${uniqueSansadCount} Sansads`, "success"); if(currentUser) { getMyUpdates(currentUser.userName); getAllUsersPerformance(); } } catch(e) { if(!isAuto) showToast("Sync failed", "error"); } finally { isAutoSyncing = false; if(!isAuto && document.getElementById("syncBtn")) { document.getElementById("syncBtn").disabled = false; } } }
+    async function syncData(isAuto = false) { if(isAutoSyncing) return; isAutoSyncing = true; if(!isAuto && document.getElementById("syncBtn")) document.getElementById("syncBtn").disabled = true; const container = document.getElementById("cardContainer"); if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; try { const res = await fetch(WEB_APP_URL + "?action=getData"); const raw = await res.json(); allRecords = raw.map((row, i) => ({ sheetRow: i+2, sansad: row[COL_SANSAD] || "—", jobCard: row[COL_JOB_CARD] || "—", applicantName: row[COL_APPLICANT_NAME] || "—", reason: row[COL_REASON] || "—", currentRemark: row[COL_NEW_REMARKS] || "" })); saveToLocalCache(allRecords); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; if(document.getElementById("syncStatus")) document.getElementById("syncStatus").innerHTML = "✅ Data ready (pending records)"; updateFilterDisplays(); updateBarChart(); resetFilters(); if(!isAuto) showToast(`📥 Synced! ${ac} pending rows across ${uniqueSansadCount} Sansads`, "success"); if(currentUser) { getMyUpdates(currentUser.userName); getAllUsersPerformance(); } } catch(e) { if(!isAuto) showToast("Sync failed", "error"); } finally { isAutoSyncing = false; if(!isAuto && document.getElementById("syncBtn")) { document.getElementById("syncBtn").disabled = false; } } }
     
     function updateFilterDisplays() {
-        // Update Sansad count (unique Sansads with pending records)
         const sansadCount = getUniqueSansadCount();
         const sansadCountSpan = document.getElementById("sansadCount");
         if(sansadCountSpan) {
             sansadCountSpan.innerText = sansadCount;
             if(sansadCount === 0) sansadCountSpan.classList.add("zero");
             else sansadCountSpan.classList.remove("zero");
-            if(sansadCount === 0) document.getElementById("filterSansad").disabled = true;
-            else document.getElementById("filterSansad").disabled = false;
         }
-        // Update Job Card count based on selected sansad
         if(selectedSansad) {
             const jobCardCount = getUniqueJobCardCount(selectedSansad);
             const jobCountSpan = document.getElementById("jobCardCount");
@@ -312,7 +447,6 @@
             const jobCountSpan = document.getElementById("jobCardCount");
             if(jobCountSpan) { jobCountSpan.innerText = "0"; jobCountSpan.classList.add("zero"); }
         }
-        // Update Applicant count based on selected sansad & jobCard
         if(selectedSansad && selectedJobCard) {
             const applicantCount = getUniqueApplicantCount(selectedSansad, selectedJobCard);
             const appCountSpan = document.getElementById("applicantCount");
@@ -338,7 +472,7 @@
     function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed! No pending data to verify.</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available. All records completed!</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending records)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box to find pending records</div>`; }
     function renderCurrentView() { if(currentMode === "filter") { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } }
     function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found for this selection</div>`; }
-    async function directUpdate(rec, rm) { if(!rm) { showToast("⚠️ Select a remark", "error"); return false; } showProgress(1,1,"Updating..."); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", rec.sheetRow); p.append("newRemarks", rm); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { rec.currentRemark = rm; saveToLocalCache(allRecords); hideProgress(); showToast("✅ Updated! Record hidden from active list.", "success"); filteredRecord = null; resetFilters(); getMyUpdates(currentUser.userName); getAllUsersPerformance(); updateFilterDisplays(); return true; } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } }
+    async function directUpdate(rec, rm) { if(!rm) { showToast("⚠️ Select a remark", "error"); return false; } showProgress(1,1,"Updating..."); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", rec.sheetRow); p.append("newRemarks", rm); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { rec.currentRemark = rm; saveToLocalCache(allRecords); hideProgress(); showToast("✅ Updated! Record hidden from active list.", "success"); filteredRecord = null; resetFilters(); getMyUpdates(currentUser.userName); getAllUsersPerformance(); updateFilterDisplays(); updateBarChart(); return true; } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } }
     function renderSingleRecord(rec) { if(!rec) { renderCurrentView(); return; } let opts = `<option value="">-- Select remark --</option>`; DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); const html = `<div class="data-card"><div class="field-row"><div class="field-label">🏛️ Sansad</div><div class="field-value">${escapeHtml(rec.sansad)}</div></div><div class="field-row"><div class="field-label">🪪 Job Card No.</div><div class="field-value">${escapeHtml(rec.jobCard)}</div></div><div class="field-row"><div class="field-label">👤 Applicant Name</div><div class="field-value">${escapeHtml(rec.applicantName)}</div></div><div class="field-row"><div class="field-label">📌 Existing Reason</div><div class="field-value"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div><select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden automatically.</div></div>`; const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } await directUpdate(rec, v); }; if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; }
     
     async function handleLogin(u, p) { const btn = document.getElementById("loginBtn"); setButtonLoading(btn, true); try { const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); const data = await res.json(); if(data.success) { showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); currentUser = { userName: data.userName || u, fullName: data.fullName || u }; localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); if(await checkIn(currentUser.userName) !== false) { startHeartbeat(); startOnlineCountRefresh(); startStatsRefresh(currentUser.userName); renderMainApp(); } } else { document.getElementById("authError").innerHTML = `<div class="error-msg">Invalid credentials</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div class="error-msg">Connection error</div>`; } finally { setButtonLoading(btn, false); } }
@@ -356,7 +490,7 @@
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
             <div class="user-header"><div class="user-info"><span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span><span class="user-role">Surveyor</span></div><div class="user-stats"><div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div><div class="divider"></div><div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(currentUser) getMyUpdates(currentUser.userName)" title="Refresh">⟳</button></div><div class="divider"></div><div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="getAllUsersPerformance()" title="Refresh">⟳</button></div></div><button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div class="header"><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready (pending records shown)</div></div>
+            <div class="header"><div class="header-left"><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready (pending records shown)</div></div><div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div class="chart-legend">Loading...</div></div></div>
             <div class="queue-bar" id="queueBar" style="display:none;"><div class="queue-info"><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
             <div class="sync-container"><div class="sync-info"><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
             <div class="filter-section"><div class="filter-title">🔍 Find Pending Record (Remark not filled)</div><div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter by Dropdown</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search (Starts With)</button></div>
@@ -368,9 +502,9 @@
             </div>
             <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card No. or Sansad"><div class="search-hint" style="font-size:0.6rem;color:#8b5cf6;margin-top:4px;">🔎 Left-to-right matching (starts with)</div></div></div>
             <div id="cardContainer"><div class="waiting-card"><div class="loading-spinner"></div><div>Loading data...</div></div></div>
-            <div class="footer-note">✅ Count shows UNIQUE Sansads/JobCards/Applicants with pending records | "No pending data to verify" appears when zero</div>
+            <div class="footer-note">✅ Count shows UNIQUE Sansads/JobCards/Applicants with pending records | Bar chart: Counts on top, Roman numerals (I,II,III...)</div>
         `;
-        loadQueue(); loadFromLocalCache(); if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; renderCurrentView(); }
+        loadQueue(); loadFromLocalCache(); if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; updateBarChart(); renderCurrentView(); }
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
         document.getElementById("uploadAllBtn").onclick = uploadAllFromQueue;
