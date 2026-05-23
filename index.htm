@@ -3,452 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Dual Column View</title>
+    <title>KYC Portal - Dual KYC Counters</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; padding-bottom: 32px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; }
         .app { max-width: 500px; margin: 0 auto; }
         
-        .live-counter { background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); border-radius: 100px; padding: 6px 16px; display: inline-flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 12px; }
-        .live-counter span { background: #10b981; border-radius: 40px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; color: white; }
-        .pulse-dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 1.5s infinite; }
-        @keyframes pulse-green { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
-        
-        .user-header {
-            background: rgba(255,255,255,0.96);
-            border-radius: 28px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        .user-info { display: flex; flex-direction: column; }
-        .user-name { font-weight: 800; color: #1e293b; font-size: 0.9rem; }
-        .user-role { font-size: 0.6rem; color: #8b5cf6; font-weight: 700; }
-        
-        .user-stats {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f1f5f9;
-            padding: 6px 14px;
-            border-radius: 40px;
-            flex-wrap: wrap;
-        }
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.7rem;
-        }
-        .stat-label { color: #64748b; font-weight: 500; }
-        .stat-value {
-            font-weight: 800;
-            color: #ec4899;
-            background: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            min-width: 35px;
-            text-align: center;
-        }
-        .online-dot-small { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 1.5s infinite; margin-right: 4px; }
-        .divider { width: 1px; height: 20px; background: #cbd5e1; }
-        
-        .logout-btn { background: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .logout-btn:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
-        .auth-card { background: rgba(255,255,255,0.98); border-radius: 32px; padding: 32px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin-top: 20px; }
-        .auth-title { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center; }
-        .auth-sub { text-align: center; font-size: 0.7rem; color: #64748b; margin-bottom: 28px; }
-        .input-group { margin-bottom: 18px; }
-        .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: #4c1d95; margin-bottom: 6px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 14px 16px; font-size: 0.9rem; border: 1.5px solid #e2e8f0; border-radius: 20px; background: white; transition: all 0.3s ease; }
-        .input-group input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.2); }
-        .auth-btn { width: 100%; background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 14px; border-radius: 40px; font-size: 1rem; font-weight: 700; color: white; cursor: pointer; margin-top: 12px; box-shadow: 0 6px 12px rgba(102,126,234,0.3); transition: all 0.2s; }
-        .auth-btn:active { transform: translateY(2px); box-shadow: 0 2px 6px rgba(102,126,234,0.3); }
-        .switch-mode { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #64748b; }
-        .switch-mode span { color: #8b5cf6; font-weight: 700; cursor: pointer; }
-        .error-msg { background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 20px; font-size: 0.75rem; text-align: center; margin-bottom: 16px; }
-        .success-msg { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 20px; font-size: 0.75rem; text-align: center; margin-bottom: 16px; }
-        .btn-loading { position: relative; pointer-events: none; opacity: 0.7; }
-        
-        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) scale(0.9); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; z-index: 2000; opacity: 0; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-        .toast-notification.show { opacity: 1; transform: translateX(-50%) scale(1); }
-        .toast-notification.success { background: #10b981; }
-        .toast-notification.error { background: #ef4444; }
-        .toast-notification.warning { background: #f59e0b; }
-        
-        .header {
-            background: rgba(255,255,255,0.95);
-            border-radius: 28px;
-            padding: 16px 18px;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .header-left { flex: 1; }
-        .header-left h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .sync-status { background: linear-gradient(135deg, #10b98120, #05966920); display: inline-block; padding: 3px 10px; border-radius: 40px; font-size: 0.6rem; margin-top: 5px; color: #065f46; font-weight: 600; }
-        
-        .chart-container {
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 8px 10px;
-            min-width: 180px;
-            border: 1px solid #e2e8f0;
-        }
-        .chart-title {
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            text-align: center;
-        }
-        .chart-bars {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            align-items: flex-end;
-            height: 70px;
-        }
-        .chart-bar-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-        }
-        .bar-value-top {
-            font-size: 0.55rem;
-            font-weight: 800;
-            color: #4f46e5;
-            margin-bottom: 3px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .bar {
-            width: 100%;
-            max-width: 24px;
-            background: linear-gradient(180deg, #c084fc, #8b5cf6);
-            border-radius: 4px 4px 3px 3px;
-            min-height: 3px;
-            transition: height 0.3s ease;
-            margin: 0 auto;
-        }
-        .bar-label {
-            font-size: 0.55rem;
-            font-weight: 800;
-            color: #475569;
-            margin-top: 5px;
-            text-align: center;
-        }
-        .chart-legend {
-            font-size: 0.5rem;
-            color: #94a3b8;
-            text-align: center;
-            margin-top: 5px;
-        }
-        
-        .sync-container { background: rgba(255,255,255,0.95); border-radius: 60px; padding: 6px 16px 6px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .record-count { font-size: 0.7rem; color: #475569; font-weight: 600; }
-        .last-sync { font-size: 0.6rem; color: #6b7280; }
-        .prominent-sync-btn { background: linear-gradient(135deg, #ec4899, #db2777); border: none; padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; color: white; cursor: pointer; box-shadow: 0 6px 12px rgba(236,72,153,0.3); transition: all 0.2s; }
-        .prominent-sync-btn:active { transform: translateY(2px); box-shadow: 0 2px 6px rgba(236,72,153,0.3); }
-        .filter-section, .queue-bar { background: rgba(255,255,255,0.96); border-radius: 24px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .filter-title { font-size: 0.75rem; font-weight: 700; color: #4c1d95; margin-bottom: 12px; }
-        
-        .data-card {
-            background: rgba(255,255,255,0.96);
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-        
-        .two-column-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .field-item {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 10px 12px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .field-item-full {
-            grid-column: span 2;
-        }
-        
-        .field-label-small {
-            font-size: 0.6rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #8b5cf6;
-            margin-bottom: 4px;
-            letter-spacing: 0.3px;
-        }
-        
-        .field-value-small {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #0f172a;
-            word-break: break-word;
-            line-height: 1.3;
-        }
-        
-        .reason-value {
-            background: #fef3c7;
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        
-        .guardian-info {
-            background: #f0fdf4;
-            padding: 8px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: #166534;
-            border-left: 3px solid #22c55e;
-            margin-top: 0;
-        }
-        .guardian-label {
-            font-weight: 700;
-            color: #15803d;
-        }
-        
-        .remark-select {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 0.85rem;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 16px;
-            margin: 12px 0;
-            background: white;
-            font-weight: 500;
-        }
-        .remark-select:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .update-now-btn, .save-queue-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-        .update-now-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 4px 8px rgba(102,126,234,0.3);
-        }
-        .save-queue-btn {
-            background: #f59e0b;
-            color: white;
-            box-shadow: 0 4px 8px rgba(245,158,11,0.3);
-        }
-        .update-now-btn:active, .save-queue-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .completed-hint {
-            background: #e2e8f0;
-            padding: 10px;
-            border-radius: 16px;
-            font-size: 0.7rem;
-            text-align: center;
-            color: #334155;
-            margin-top: 12px;
-        }
-        
-        .search-filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-        .mode-toggle { background: #f1f5f9; border: none; padding: 8px 18px; border-radius: 40px; font-weight: 600; font-size: 0.7rem; cursor: pointer; color: #334155; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .mode-toggle.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 8px rgba(102,126,234,0.3); }
-        .mode-toggle:active { transform: translateY(1px); }
-        
-        .filter-row {
-            margin-bottom: 16px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 12px;
-        }
-        .filter-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #475569;
-        }
-        .filter-count {
-            background: #8b5cf6;
-            color: white;
-            padding: 2px 10px;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: 700;
-        }
-        .filter-count.zero { background: #ef4444; }
-        .filter-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 16px; background: white; cursor: pointer; }
-        .filter-select:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.7; }
-        .reset-filter-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 40px; width: 100%; cursor: pointer; font-size: 0.7rem; font-weight: 600; margin-top: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; }
-        .reset-filter-btn:active { transform: translateY(1px); }
-        
-        .queue-badge { padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 700; background: #ef4444; color: white; animation: pulseBadge 1.5s infinite; }
-        @keyframes pulseBadge { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
-        .upload-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 8px 18px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; color: white; cursor: pointer; box-shadow: 0 4px 8px rgba(16,185,129,0.3); transition: all 0.2s; margin-left: 8px; }
-        .upload-all-btn { background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 4px 8px rgba(139,92,246,0.3); }
-        .upload-btn:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .queue-bar { display: flex; justify-content: space-between; align-items: center; }
-        
-        .result-item {
-            background: white;
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        }
-        .result-item:active { background: #f3e8ff; transform: scale(0.99); }
-        .result-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .result-name { font-weight: 700; font-size: 0.8rem; color: #1e293b; flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .result-job { font-size: 0.65rem; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 20px; }
-        .result-sansad { font-size: 0.65rem; color: #8b5cf6; background: #ede9fe; padding: 3px 8px; border-radius: 20px; }
-        .result-tap { font-size: 0.55rem; color: #94a3b8; }
-        
-        .waiting-card, .empty-card { text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.95); border-radius: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; font-size: 0.85rem; white-space: nowrap; }
+        .waiting-card { text-align: center; padding: 40px 20px; background: white; border-radius: 24px; }
         .loading-spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #ec4899; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .footer-note { text-align: center; font-size: 0.6rem; color: rgba(255,255,255,0.9); margin-top: 20px; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .prominent-sync-btn { background: linear-gradient(135deg, #ec4899, #db2777); border: none; padding: 10px 20px; border-radius: 50px; color: white; cursor: pointer; font-weight: 700; }
+        .sync-progress-container { margin-top: 8px; display: none; }
+        .sync-progress-bar-bg { background: #e2e8f0; border-radius: 20px; height: 6px; }
+        .sync-progress-fill { background: linear-gradient(90deg, #10b981, #059669); width: 0%; height: 100%; border-radius: 20px; transition: width 0.3s; }
+        .sync-progress-text { font-size: 0.65rem; text-align: center; margin-top: 4px; color: #475569; }
+        .auth-card { background: white; border-radius: 32px; padding: 32px; margin-top: 20px; }
+        .stat-value.today-kyc { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .stat-value.my-today-kyc { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .user-header { background: white; border-radius: 28px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .user-stats { display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px; flex-wrap: wrap; }
+        .stat-item { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; }
+        .stat-label { color: #64748b; }
+        .stat-value { font-weight: 800; color: #ec4899; background: white; padding: 2px 8px; border-radius: 20px; min-width: 35px; text-align: center; }
+        .divider { width: 1px; height: 20px; background: #cbd5e1; }
+        .logout-btn { background: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; }
+        .sync-container { background: white; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .record-count { font-size: 0.7rem; color: #475569; }
+        .last-sync { font-size: 0.6rem; color: #6b7280; }
+        .filter-section { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; }
+        .filter-title { font-size: 0.75rem; font-weight: 700; color: #4c1d95; margin-bottom: 12px; }
+        .filter-row { margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; }
+        .filter-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.7rem; font-weight: 700; color: #475569; }
+        .filter-count { background: #8b5cf6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.65rem; }
+        .filter-count.zero { background: #ef4444; }
+        .filter-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 16px; background: white; }
+        .reset-filter-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 40px; width: 100%; cursor: pointer; font-size: 0.7rem; margin-top: 8px; }
+        .data-card { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; }
+        .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .field-item { background: #f8fafc; border-radius: 16px; padding: 10px 12px; border: 1px solid #e2e8f0; }
+        .field-item-full { grid-column: span 2; }
+        .field-label-small { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; color: #8b5cf6; margin-bottom: 4px; }
+        .field-value-small { font-size: 0.85rem; font-weight: 600; color: #0f172a; }
+        .reason-value { background: #fef3c7; display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; }
+        .guardian-info { background: #f0fdf4; padding: 8px 12px; border-radius: 12px; border-left: 3px solid #22c55e; }
+        .remark-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1.5px solid #e2e8f0; border-radius: 16px; margin: 12px 0; }
+        .action-buttons { display: flex; gap: 12px; margin-top: 12px; }
+        .update-now-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; }
+        .save-queue-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; }
+        .completed-hint { background: #e2e8f0; padding: 10px; border-radius: 16px; font-size: 0.7rem; text-align: center; margin-top: 12px; }
+        .queue-bar { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .queue-badge { padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 700; background: #ef4444; color: white; }
+        .upload-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 8px 18px; border-radius: 40px; color: white; cursor: pointer; margin-left: 8px; }
+        .result-item { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; }
+        .result-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .result-name { font-weight: 700; font-size: 0.8rem; }
         .refresh-icon { background: none; border: none; font-size: 0.7rem; cursor: pointer; padding: 2px 6px; border-radius: 20px; }
-        .search-results-info { font-size: 0.7rem; color: #475569; text-align: center; margin-bottom: 10px; background: #f8fafc; border-radius: 20px; padding: 6px; }
+        .search-filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .mode-toggle { background: #f1f5f9; border: none; padding: 8px 18px; border-radius: 40px; font-weight: 600; font-size: 0.7rem; cursor: pointer; }
+        .mode-toggle.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
         .progress-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .progress-card { background: white; border-radius: 32px; padding: 32px 24px; text-align: center; max-width: 280px; }
-        .progress-number { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 12px 0; }
+        .progress-card { background: white; border-radius: 32px; padding: 32px 24px; text-align: center; }
         .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 12px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #ec4899, #db2777); width: 0%; transition: width 0.3s ease; }
-        
-        .debug-info {
-            font-size: 0.6rem;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 8px;
-            margin-top: 4px;
-            font-family: monospace;
-        }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ec4899, #db2777); width: 0%; transition: width 0.3s; }
+        .footer-note { text-align: center; font-size: 0.6rem; color: rgba(255,255,255,0.9); margin-top: 20px; }
+        .chart-container { background: #f8fafc; border-radius: 20px; padding: 8px; min-width: 160px; }
+        .chart-title { font-size: 0.55rem; font-weight: 700; color: #64748b; text-align: center; margin-bottom: 6px; }
+        .chart-bars { display: flex; gap: 6px; justify-content: center; align-items: flex-end; height: 70px; }
+        .chart-bar-item { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+        .bar-value-top { font-size: 0.55rem; font-weight: 800; color: #4f46e5; margin-bottom: 3px; text-align: center; white-space: nowrap; }
+        .bar { width: 100%; max-width: 24px; border-radius: 4px 4px 3px 3px; min-height: 3px; transition: height 0.3s ease; margin: 0 auto; }
+        .bar-label { font-size: 0.55rem; font-weight: 800; color: #475569; margin-top: 5px; text-align: center; }
+        .chart-legend { font-size: 0.5rem; color: #94a3b8; text-align: center; margin-top: 5px; }
+        .online-dot-small { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
     </style>
 </head>
 <body>
-<div class="app" id="app"></div>
+<div class="app" id="app">Loading...</div>
 
 <script>
     // ==================== CONFIGURATION ====================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwyVhQ8vQVQHvUK_zVvDWtKFmnS0oXoYTvqYgcZh5CzFtQ91y1p3cvUc_J_rZawYGy11w/exec";
+    // !!! IMPORTANT: Replace this with your actual Google Apps Script URL !!!
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_rDeNCe_h2tBhcrEX3WYXnMXy9KsUBJsTAOGBMi-fXCE7rr1Iv5chKcnpLw0-j0K0Ew/exec";
     
-    let sessionId = null, heartbeatInterval = null, onlineCountInterval = null, statsRefreshInterval = null;
-    function generateSessionId() { return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
-    
-    async function checkIn(userName) {
-        if (!sessionId) sessionId = generateSessionId();
-        try {
-            const payload = new URLSearchParams();
-            payload.append("action", "checkIn"); payload.append("userName", userName); payload.append("sessionId", sessionId);
-            const response = await fetch(WEB_APP_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: payload });
-            const result = await response.json();
-            if (result.success === false && result.alreadyLoggedIn) {
-                showToast("❌ Already logged in from another device!", "error");
-                setTimeout(() => { localStorage.removeItem("kyc_session"); window.location.reload(); }, 2000);
-                return false;
-            }
-            updateOnlineCountDisplay(result.count || 0);
-            return true;
-        } catch (err) { return true; }
-    }
-    async function sendHeartbeat() { if (!sessionId) return; try { const payload = new URLSearchParams(); payload.append("action", "heartbeat"); payload.append("sessionId", sessionId); await fetch(WEB_APP_URL, { method: "POST", body: payload }); } catch(e) {} }
-    async function checkOut() { if (!sessionId) return; try { const payload = new URLSearchParams(); payload.append("action", "checkOut"); payload.append("sessionId", sessionId); await fetch(WEB_APP_URL, { method: "POST", body: payload }); } catch(e) {} }
-    async function getOnlineCount() { try { const res = await fetch(`${WEB_APP_URL}?action=getOnlineCount`); const data = await res.json(); if(data.success) updateOnlineCountDisplay(data.count); } catch(e) {} }
-    async function getMyUpdates(userName) { try { const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); const data = await res.json(); updateMyUpdatesDisplay(data.success ? data.myCount : 0); } catch(e) { updateMyUpdatesDisplay(0); } }
-    async function getAllUsersPerformance() { try { const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); const data = await res.json(); updateAllUsersDisplay(data.success ? data.totalUpdates : 0); } catch(e) { updateAllUsersDisplay(0); } }
-    function updateMyUpdatesDisplay(c) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = c; }
-    function updateAllUsersDisplay(c) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = c; }
-    function updateOnlineCountDisplay(c) { const s = document.getElementById("onlineCountValue"); if(s) s.innerText = c; const live = document.getElementById("liveCountNumber"); if(live) live.innerText = c; }
-    
-    // CORRECTED COLUMN INDICES - Zero-based indices for array access
-    // Based on headers: TimeStamp(0), User Name(1), SL NO(2), Sansad(3), Job Card No.(4), Applicant No.(5), Applicant Name(6), GURDIAN(7), Gender(8), Name as per Aadhaar Card(9), Aadhaar Seeded ?(10), Authentication done ?(11), Enabled for ABPS ?(12), eKyc done ?(13), Reason(14), New Remarks(15)
-    const COL_SANSAD = 3;           // Column 4
-    const COL_JOB_CARD = 4;         // Column 5
-    const COL_APPLICANT_NAME = 6;   // Column 7
-    const COL_GURDIAN = 7;          // Column 8 - GURDIAN (NOT Gender!)
-    const COL_GENDER = 8;           // Column 9 - Gender
-    const COL_REASON = 14;          // Column 15
-    const COL_NEW_REMARKS = 15;     // Column 16
+    // Column indices (0-indexed from GS response)
+    const COL_SANSAD = 3;
+    const COL_JOB_CARD = 4;
+    const COL_APPLICANT_NAME = 6;
+    const COL_GUARDIAN = 7;
+    const COL_REASON = 14;
+    const COL_NEW_REMARKS = 15;
     
     const DROPDOWN_OPTIONS = ["KYC DONE", "Biometric update required", "Migrant worker", "Aadhar name mismatch with Job Card", "Gender mismatch", "Death of worker", "Not included in SIR", "Unwilling to work (Consent required)", "Face Authentication : Failed (Error Code - K-100)", "Shifted worker", "Aadhar Authentication Failed"];
     
-    let currentUser = null, allRecords = [], filteredRecord = null, selectedSansad = "", selectedJobCard = "", selectedApplicant = "", pendingQueue = [], isAutoSyncing = false, currentMode = "filter", searchQuery = "";
-    const CACHE_KEY = "kyc_records_v6", QUEUE_KEY = "kyc_queue_v6", SESSION_KEY = "kyc_session";
+    // Beautiful gradient colors for bars
+    const BAR_GRADIENTS = [
+        { top: "#f59e0b", bottom: "#d97706" },  // Amber
+        { top: "#10b981", bottom: "#059669" },  // Emerald
+        { top: "#3b82f6", bottom: "#1d4ed8" },  // Blue
+        { top: "#ef4444", bottom: "#dc2626" },  // Red
+        { top: "#8b5cf6", bottom: "#7c3aed" },  // Purple
+        { top: "#ec4899", bottom: "#db2777" },  // Pink
+        { top: "#06b6d4", bottom: "#0891b2" },  // Cyan
+        { top: "#84cc16", bottom: "#65a30d" },  // Lime
+        { top: "#f97316", bottom: "#ea580c" },  // Orange
+        { top: "#14b8a6", bottom: "#0f766e" },  // Teal
+        { top: "#a855f7", bottom: "#9333ea" },  // Violet
+        { top: "#f43f5e", bottom: "#e11d48" }   // Rose
+    ];
     
+    let sessionId = null;
+    let currentUser = null;
+    let allRecords = [];
+    let filteredRecord = null;
+    let selectedSansad = "";
+    let selectedJobCard = "";
+    let selectedApplicant = "";
+    let pendingQueue = [];
+    let isAutoSyncing = false;
+    let currentMode = "filter";
+    let searchQuery = "";
+    
+    const QUEUE_KEY = "kyc_queue_v7";
+    const SESSION_KEY = "kyc_session";
+    
+    function generateSessionId() { return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
     function escapeHtml(s) { if(!s) return ""; return String(s).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-    function showToast(msg, type = "success") { let t = document.querySelector(".toast-notification"); if(t) t.remove(); t = document.createElement("div"); t.className = `toast-notification ${type}`; t.innerHTML = `<span>${type === 'success' ? '✓' : (type === 'error' ? '✗' : '⚠')}</span><span>${msg}</span>`; document.body.appendChild(t); setTimeout(() => t.classList.add("show"), 10); setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 200); }, 2600); }
-    function setButtonLoading(btn, isLoading) { if(!btn) return; if(isLoading) { btn.classList.add("btn-loading"); btn.disabled = true; } else { btn.classList.remove("btn-loading"); btn.disabled = false; } }
-    function showProgress(c, t, m) { let o = document.querySelector(".progress-overlay"); if(o) o.remove(); o = document.createElement("div"); o.className = "progress-overlay"; o.innerHTML = `<div class="progress-card"><div class="progress-number">${c}/${t}</div><div>${m}</div><div class="progress-bar"><div class="progress-fill" style="width:${(c/t)*100}%"></div></div></div>`; document.body.appendChild(o); if(c === t) setTimeout(() => o.remove(), 800); }
+    
+    function showToast(msg, type = "success") { 
+        let t = document.querySelector(".toast-notification"); 
+        if(t) t.remove(); 
+        t = document.createElement("div"); 
+        t.className = "toast-notification"; 
+        t.style.background = type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981');
+        t.innerHTML = `<span>${type === 'success' ? '✓' : (type === 'error' ? '✗' : '⚠')}</span> ${msg}`; 
+        document.body.appendChild(t); 
+        setTimeout(() => t.remove(), 2600); 
+    }
+    
+    function showProgress(c, t, m) { 
+        let o = document.querySelector(".progress-overlay"); 
+        if(o) o.remove(); 
+        o = document.createElement("div"); 
+        o.className = "progress-overlay"; 
+        o.innerHTML = `<div class="progress-card"><div>${m}</div><div style="font-size:1.5rem;font-weight:800;margin:12px 0;">${c}/${t}</div><div class="progress-bar"><div class="progress-fill" style="width:${(c/t)*100}%"></div></div></div>`; 
+        document.body.appendChild(o); 
+        if(c === t) setTimeout(() => o.remove(), 800); 
+    }
     function hideProgress() { const o = document.querySelector(".progress-overlay"); if(o) o.remove(); }
+    
     function saveQueue() { localStorage.setItem(QUEUE_KEY, JSON.stringify(pendingQueue)); updateQueueUI(); }
     function loadQueue() { const s = localStorage.getItem(QUEUE_KEY); if(s) { pendingQueue = JSON.parse(s); updateQueueUI(); } }
     function updateQueueUI() { const b = document.getElementById("queueBar"); if(b) { b.style.display = pendingQueue.length > 0 ? "flex" : "none"; const qc = document.getElementById("queueCount"); if(qc) qc.innerText = `${pendingQueue.length}`; } }
-    function addToQueue(r, rm) { if(pendingQueue.some(i => i.sheetRow === r.sheetRow)) { showToast("⚠️ Already in queue!", "error"); return false; } pendingQueue.push({ sheetRow: r.sheetRow, newRemarks: rm, sansad: r.sansad, jobCard: r.jobCard, applicantName: r.applicantName }); saveQueue(); showToast(`💾 Saved to queue (${pendingQueue.length} pending)`, "warning"); return true; }
-    async function uploadSingleFromQueue() { if(pendingQueue.length === 0) { showToast("✅ No pending updates!", "success"); return; } const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; saveToLocalCache(allRecords); if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); getMyUpdates(currentUser.userName); getAllUsersPerformance(); updateBarChart(); } else { showToast(`❌ Failed: ${result?.error || "Unknown"}`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
-    async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); saveToLocalCache(allRecords); hideProgress(); if(filteredRecord && filteredRecord.currentRemark && filteredRecord.currentRemark.trim() !== "") { filteredRecord = null; resetFilters(); } showToast(`✅ Batch upload complete!`, "success"); getMyUpdates(currentUser.userName); getAllUsersPerformance(); updateBarChart(); }
-    function saveToLocalCache(r) { localStorage.setItem(CACHE_KEY, JSON.stringify(r)); }
-    function loadFromLocalCache() { const s = localStorage.getItem(CACHE_KEY); if(s) { allRecords = JSON.parse(s); return true; } return false; }
+    
+    function addToQueue(r, rm) { 
+        if(pendingQueue.some(i => i.sheetRow === r.sheetRow)) { showToast("⚠️ Already in queue!", "error"); return false; } 
+        pendingQueue.push({ sheetRow: r.sheetRow, newRemarks: rm, sansad: r.sansad, jobCard: r.jobCard, applicantName: r.applicantName }); 
+        saveQueue(); 
+        showToast(`💾 Saved to queue (${pendingQueue.length} pending)`, "warning"); 
+        return true; 
+    }
+    
     function getActiveRecords() { return allRecords.filter(r => !r.currentRemark || r.currentRemark.trim() === ""); }
     function getCompletedRecords() { return allRecords.filter(r => r.currentRemark && r.currentRemark.trim() !== ""); }
+    
+    function getUniqueSansadCount() { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") s.add(r.sansad); }); return s.size; }
+    function getUniqueJobCardCount(sansad) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") s.add(r.jobCard); }); return s.size; }
+    function getUniqueApplicantCount(sansad, jobCard) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") s.add(r.applicantName); }); return s.size; }
+    function getUniqueSansadValues() { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") s.add(r.sansad); }); return Array.from(s).sort(); }
+    function getUniqueJobCardValues(sansad) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") s.add(r.jobCard); }); return Array.from(s).sort(); }
+    function getUniqueApplicantValues(sansad, jobCard) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") s.add(r.applicantName); }); return Array.from(s).sort(); }
+    function findActiveRecord() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; return getActiveRecords().find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); }
     
     function getVerificationCounts() {
         const completed = getCompletedRecords();
         const counts = new Map();
-        completed.forEach(r => {
-            if(r.sansad && r.sansad !== "—") {
-                counts.set(r.sansad, (counts.get(r.sansad) || 0) + 1);
-            }
-        });
+        completed.forEach(r => { if(r.sansad && r.sansad !== "—") counts.set(r.sansad, (counts.get(r.sansad) || 0) + 1); });
         return counts;
     }
     
@@ -458,18 +189,20 @@
         let slashMatch = upper.match(/\/([IVXLCDM]+)$/);
         if (slashMatch) return slashMatch[1];
         let numMatch = upper.match(/(\d+)$/);
-        if (numMatch) {
-            const num = parseInt(numMatch[1]);
-            const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"];
-            return romanNumerals[num] || num.toString();
-        }
+        if (numMatch) { const num = parseInt(numMatch[1]); const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]; return romanNumerals[num] || num.toString(); }
         let romanMatch = upper.match(/\b([IVXLCDM]+)\b/);
         if (romanMatch && romanMatch[1].length <= 4) return romanMatch[1];
         return sansad.substring(0, 3);
     }
     
+    function getColorForSansad(index) {
+        const colors = BAR_GRADIENTS[index % BAR_GRADIENTS.length];
+        return `linear-gradient(180deg, ${colors.top}, ${colors.bottom})`;
+    }
+    
     function updateBarChart() {
         const counts = getVerificationCounts();
+        // Sort sansads by numeric order
         const sansads = Array.from(counts.keys()).sort((a, b) => {
             const getNum = (s) => {
                 const match = s.match(/\d+$/);
@@ -484,126 +217,47 @@
             };
             return getNum(a) - getNum(b);
         });
+        
         const maxCount = Math.max(...Array.from(counts.values()), 1);
         const chartContainer = document.getElementById("barChartContainer");
         if(!chartContainer) return;
-        if(sansads.length === 0) {
+        
+        if(sansads.length === 0) { 
             chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No completed records yet</div>`;
-            return;
+            return; 
         }
+        
         let barsHtml = `<div class="chart-title">✓ KYC Completed</div><div class="chart-bars">`;
         sansads.forEach((sansad, idx) => {
             const count = counts.get(sansad) || 0;
             const height = Math.max(8, Math.min(45, (count / maxCount) * 45));
             const romanLabel = toRomanLabel(sansad);
-            barsHtml += `<div class="chart-bar-item"><div class="bar-value-top">${count}</div><div class="bar" style="height: ${height}px; background: linear-gradient(180deg, ${getColorForIndex(idx)}, ${getColorForIndex(idx, true)});"></div><div class="bar-label">${romanLabel}</div></div>`;
+            const gradient = getColorForSansad(idx);
+            barsHtml += `
+                <div class="chart-bar-item">
+                    <div class="bar-value-top">${count}</div>
+                    <div class="bar" style="height: ${height}px; background: ${gradient};"></div>
+                    <div class="bar-label">${romanLabel}</div>
+                </div>
+            `;
         });
         barsHtml += `</div><div class="chart-legend">Verification count</div>`;
         chartContainer.innerHTML = barsHtml;
     }
     
-    function getColorForIndex(idx, isDark = false) {
-        const colors = ["#f59e0b", "#10b981", "#3b82f6", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
-        if(isDark) {
-            const darkColors = ["#d97706", "#059669", "#2563eb", "#dc2626", "#7c3aed", "#db2777", "#0891b2", "#65a30d"];
-            return darkColors[idx % darkColors.length];
-        }
-        return colors[idx % colors.length];
-    }
-    
-    function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
-    function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
-    
-    function getUniqueSansadCount() { const uniqueSansads = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") uniqueSansads.add(r.sansad); }); return uniqueSansads.size; }
-    function getUniqueJobCardCount(sansad) { const uniqueJobCards = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") uniqueJobCards.add(r.jobCard); }); return uniqueJobCards.size; }
-    function getUniqueApplicantCount(sansad, jobCard) { const uniqueApplicants = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") uniqueApplicants.add(r.applicantName); }); return uniqueApplicants.size; }
-    function getUniqueSansadValues() { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") vals.add(r.sansad); }); return Array.from(vals).sort(); }
-    function getUniqueJobCardValues(sansad) { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") vals.add(r.jobCard); }); return Array.from(vals).sort(); }
-    function getUniqueApplicantValues(sansad, jobCard) { const vals = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") vals.add(r.applicantName); }); return Array.from(vals).sort(); }
-    function findActiveRecord() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; return getActiveRecords().find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); }
-    
-    async function syncData(isAuto = false) { 
-        if(isAutoSyncing) return; 
-        isAutoSyncing = true; 
-        if(!isAuto && document.getElementById("syncBtn")) document.getElementById("syncBtn").disabled = true; 
-        const container = document.getElementById("cardContainer"); 
-        if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; 
-        try { 
-            const res = await fetch(WEB_APP_URL + "?action=getData"); 
-            const raw = await res.json(); 
-            console.log("Raw data sample (first row):", raw[0]);
-            
-            allRecords = raw.map((row, i) => ({ 
-                sheetRow: i+2, 
-                sansad: row[COL_SANSAD] || "—", 
-                jobCard: row[COL_JOB_CARD] || "—", 
-                applicantName: row[COL_APPLICANT_NAME] || "—",
-                guardian: row[COL_GURDIAN] || "—",     // This is column 8 - GURDIAN
-                gender: row[COL_GENDER] || "—",         // This is column 9 - Gender
-                reason: row[COL_REASON] || "—", 
-                currentRemark: row[COL_NEW_REMARKS] || "" 
-            })); 
-            
-            console.log("Sample mapped record:", allRecords[0]);
-            console.log("Guardian value from first record:", allRecords[0]?.guardian);
-            
-            saveToLocalCache(allRecords); 
-            const ac = getActiveRecords().length; 
-            const uniqueSansadCount = getUniqueSansadCount(); 
-            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; 
-            if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; 
-            if(document.getElementById("syncStatus")) document.getElementById("syncStatus").innerHTML = "✅ Data ready (pending records)"; 
-            updateFilterDisplays(); 
-            updateBarChart(); 
-            populateSansadDropdown();
-            resetFilters(); 
-            if(!isAuto) showToast(`📥 Synced! ${ac} pending rows across ${uniqueSansadCount} Sansads`, "success"); 
-            if(currentUser) { 
-                getMyUpdates(currentUser.userName); 
-                getAllUsersPerformance(); 
-            } 
-        } catch(e) { 
-            console.error("Sync error:", e);
-            if(!isAuto) showToast("Sync failed: " + e.message, "error"); 
-        } finally { 
-            isAutoSyncing = false; 
-            if(!isAuto && document.getElementById("syncBtn")) { 
-                document.getElementById("syncBtn").disabled = false; 
-            } 
-        } 
-    }
-    
     function updateFilterDisplays() {
         const sansadCount = getUniqueSansadCount();
-        const sansadCountSpan = document.getElementById("sansadCount");
-        if(sansadCountSpan) {
-            sansadCountSpan.innerText = sansadCount;
-            if(sansadCount === 0) sansadCountSpan.classList.add("zero");
-            else sansadCountSpan.classList.remove("zero");
-        }
+        const sansadSpan = document.getElementById("sansadCount");
+        if(sansadSpan) { sansadSpan.innerText = sansadCount; if(sansadCount === 0) sansadSpan.classList.add("zero"); else sansadSpan.classList.remove("zero"); }
         if(selectedSansad) {
-            const jobCardCount = getUniqueJobCardCount(selectedSansad);
-            const jobCountSpan = document.getElementById("jobCardCount");
-            if(jobCountSpan) {
-                jobCountSpan.innerText = jobCardCount;
-                if(jobCardCount === 0) jobCountSpan.classList.add("zero");
-                else jobCountSpan.classList.remove("zero");
-            }
-        } else {
-            const jobCountSpan = document.getElementById("jobCardCount");
-            if(jobCountSpan) { jobCountSpan.innerText = "0"; jobCountSpan.classList.add("zero"); }
+            const jobCount = getUniqueJobCardCount(selectedSansad);
+            const jobSpan = document.getElementById("jobCardCount");
+            if(jobSpan) { jobSpan.innerText = jobCount; if(jobCount === 0) jobSpan.classList.add("zero"); else jobSpan.classList.remove("zero"); }
         }
         if(selectedSansad && selectedJobCard) {
-            const applicantCount = getUniqueApplicantCount(selectedSansad, selectedJobCard);
-            const appCountSpan = document.getElementById("applicantCount");
-            if(appCountSpan) {
-                appCountSpan.innerText = applicantCount;
-                if(applicantCount === 0) appCountSpan.classList.add("zero");
-                else appCountSpan.classList.remove("zero");
-            }
-        } else {
-            const appCountSpan = document.getElementById("applicantCount");
-            if(appCountSpan) { appCountSpan.innerText = "0"; appCountSpan.classList.add("zero"); }
+            const appCount = getUniqueApplicantCount(selectedSansad, selectedJobCard);
+            const appSpan = document.getElementById("applicantCount");
+            if(appSpan) { appSpan.innerText = appCount; if(appCount === 0) appSpan.classList.add("zero"); else appSpan.classList.remove("zero"); }
         }
     }
     
@@ -612,180 +266,103 @@
         const sel = document.getElementById("filterSansad"); 
         if(!sel) return; 
         sel.innerHTML = '<option value="">-- Select Sansad --</option>'; 
-        vals.forEach(v => { 
-            sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; 
-        }); 
+        vals.forEach(v => { sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); 
         updateFilterDisplays(); 
     }
     
     function updateJobCardDropdown() { 
         if(!selectedSansad) { 
             const jobSel = document.getElementById("filterJobCard"); 
-            if(jobSel) { 
-                jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; 
-                jobSel.disabled = true; 
-            } 
-            updateFilterDisplays(); 
-            return; 
+            if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } 
+            updateFilterDisplays(); return; 
         } 
         const vals = getUniqueJobCardValues(selectedSansad); 
         const jobSel = document.getElementById("filterJobCard"); 
-        if(jobSel) { 
-            jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; 
-            vals.forEach(v => { 
-                jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; 
-            }); 
-            jobSel.disabled = vals.length === 0; 
-        } 
-        selectedJobCard = ""; 
-        selectedApplicant = ""; 
+        if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } 
+        selectedJobCard = ""; selectedApplicant = ""; 
         const appSel = document.getElementById("filterApplicant"); 
-        if(appSel) { 
-            appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; 
-            appSel.disabled = true; 
-        } 
-        filteredRecord = null; 
-        updateFilterDisplays(); 
-        renderCurrentView(); 
+        if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
+        filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
     }
     
     function updateApplicantDropdown() { 
         if(!selectedSansad || !selectedJobCard) { 
             const appSel = document.getElementById("filterApplicant"); 
-            if(appSel) { 
-                appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; 
-                appSel.disabled = true; 
-            } 
-            updateFilterDisplays(); 
-            return; 
+            if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
+            updateFilterDisplays(); return; 
         } 
         const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); 
         const appSel = document.getElementById("filterApplicant"); 
-        if(appSel) { 
-            appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; 
-            vals.forEach(v => { 
-                appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; 
-            }); 
-            appSel.disabled = vals.length === 0; 
-        } 
-        selectedApplicant = ""; 
-        filteredRecord = null; 
-        updateFilterDisplays(); 
-        renderCurrentView(); 
+        if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } 
+        selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
     }
     
     function resetFilters() { 
-        selectedSansad = ""; 
-        selectedJobCard = ""; 
-        selectedApplicant = ""; 
-        const sansad = document.getElementById("filterSansad"); 
-        if(sansad) sansad.value = ""; 
-        updateJobCardDropdown(); 
-        filteredRecord = null; 
-        searchQuery = ""; 
-        const si = document.getElementById("globalSearchInput"); 
-        if(si) si.value = ""; 
-        currentMode = "filter"; 
-        toggleModeUI(); 
-        updateFilterDisplays(); 
-        renderCurrentView(); 
+        selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; 
+        const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; 
+        updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; 
+        const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; 
+        currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); 
     }
     
     function toggleModeUI() { 
         const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); 
-        if(fb && sb) { 
-            if(currentMode === "filter") { 
-                fb.classList.add("active"); 
-                sb.classList.remove("active"); 
-            } else { 
-                sb.classList.add("active"); 
-                fb.classList.remove("active"); 
-            } 
-        } 
+        if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } 
         const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); 
-        if(fs && sa) { 
-            fs.style.display = currentMode === "filter" ? "block" : "none"; 
-            sa.style.display = currentMode === "search" ? "block" : "none"; 
-        } 
+        if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } 
         if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); 
         else if(currentMode === "filter") renderCurrentView(); 
         else renderWaiting(); 
     }
     
+    function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
+    function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
+    
     function performSearchAndRender() { 
         const inp = document.getElementById("globalSearchInput"); 
         if(!inp) return; 
         searchQuery = inp.value; 
-        if(!searchQuery.trim()) { 
-            renderWaitingWithMessage("🔍 Enter search term (Name, Job Card, Sansad)"); 
-            filteredRecord = null; 
-            return; 
-        } 
+        if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } 
         const results = searchRecords(searchQuery); 
-        if(results.length === 1) { 
-            filteredRecord = results[0]; 
-            renderSingleRecord(filteredRecord); 
-        } else if(results.length > 1) { 
-            renderCompactResultList(results); 
-            filteredRecord = null; 
-        } else { 
-            renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); 
-            filteredRecord = null; 
-        } 
+        if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } 
+        else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } 
+        else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } 
     }
     
     function renderCompactResultList(records) { 
         const container = document.getElementById("cardContainer"); 
         if(!container) return; 
-        let html = `<div class="search-results-info">📋 ${records.length} results · tap to update</div><div class="search-hint" style="font-size:0.65rem;color:#8b5cf6;text-align:center;">🔎 Left-to-right matching: "${escapeHtml(searchQuery)}"</div>`; 
+        let html = `<div style="font-size:0.7rem;text-align:center;margin-bottom:10px;">📋 ${records.length} results · tap to update</div>`; 
         records.forEach(rec => { 
-            html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span class="result-job">${escapeHtml(rec.jobCard)}</span><span class="result-sansad">${escapeHtml(rec.sansad)}</span><span class="result-tap">→</span></div></div>`; 
+            html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.65rem;background:#f1f5f9;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.65rem;background:#ede9fe;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.55rem;">→</span></div></div>`; 
         }); 
         container.innerHTML = html; 
         records.forEach(rec => { 
             const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); 
-            if(div) div.onclick = () => { 
-                filteredRecord = rec; 
-                renderSingleRecord(rec); 
-            }; 
+            if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; 
         }); 
     }
     
     function renderWaitingWithMessage(msg) { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">${msg}</div>`; }
-    
     function renderWaiting() { 
         const c = document.getElementById("cardContainer"); 
         if(!c) return; 
         const ac = getActiveRecords().length; 
         const uniqueSansadCount = getUniqueSansadCount(); 
         if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; 
-        else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed! No pending data to verify.</div>`; 
+        else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; 
         else if(currentMode === "filter") { 
-            if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available. All records completed!</div>`; 
-            else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending records)</span></div>`; 
-        } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box to find pending records</div>`; 
+            if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; 
+            else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending)</span></div>`; 
+        } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; 
     }
-    
     function renderCurrentView() { 
         if(currentMode === "filter") { 
-            if(!selectedSansad || !selectedJobCard || !selectedApplicant) { 
-                renderWaiting(); 
-            } else { 
-                const m = findActiveRecord(); 
-                if(m) { 
-                    filteredRecord = m; 
-                    renderSingleRecord(m); 
-                } else { 
-                    renderNoMatch(); 
-                } 
-            } 
-        } else { 
-            if(searchQuery.trim()) performSearchAndRender(); 
-            else renderWaiting(); 
-        } 
+            if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } 
+            else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } 
+        } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } 
     }
-    
-    function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found for this selection</div>`; }
+    function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found</div>`; }
     
     async function directUpdate(rec, rm) { 
         if(!rm) { showToast("⚠️ Select a remark", "error"); return false; } 
@@ -800,109 +377,351 @@
             const result = await res.json(); 
             if(result.success) { 
                 rec.currentRemark = rm; 
-                saveToLocalCache(allRecords); 
                 hideProgress(); 
-                showToast("✅ Updated! Record hidden from active list.", "success"); 
+                showToast("✅ Updated!", "success"); 
                 filteredRecord = null; 
                 resetFilters(); 
-                getMyUpdates(currentUser.userName); 
-                getAllUsersPerformance(); 
+                await getMyUpdates(currentUser.userName); 
+                await getAllUsersPerformance(); 
+                await getMyTodayKycCount(currentUser.userName);
+                await getTodayKycCount();
                 updateFilterDisplays(); 
                 updateBarChart(); 
                 return true; 
-            } else { 
-                hideProgress(); 
-                showToast(`❌ Failed: ${result?.error}`, "error"); 
-                return false; 
-            } 
-        } catch(e) { 
-            hideProgress(); 
-            showToast(`❌ Network error`, "error"); 
-            return false; 
-        } 
+            } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } 
+        } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } 
     }
     
     function renderSingleRecord(rec) { 
         if(!rec) { renderCurrentView(); return; } 
         let opts = `<option value="">-- Select remark --</option>`; 
-        DROPDOWN_OPTIONS.forEach(o => { 
-            opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; 
-        }); 
-        
+        DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); 
         let guardianHtml = "";
-        // Check if guardian exists and is not empty or placeholder
-        if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "" && rec.guardian !== "Gender") {
-            guardianHtml = `<div class="field-item field-item-full">
-                <div class="field-label-small">👨‍👩‍👧 GUARDIAN NAME</div>
-                <div class="field-value-small guardian-info" style="margin-top:0;">${escapeHtml(rec.guardian)}</div>
-            </div>`;
+        if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "") {
+            guardianHtml = `<div class="field-item field-item-full"><div class="field-label-small">👨‍👩‍👧 GUARDIAN</div><div class="field-value-small guardian-info">${escapeHtml(rec.guardian)}</div></div>`;
         }
-        
-        const html = `<div class="data-card">
-            <div class="two-column-grid">
-                <div class="field-item">
-                    <div class="field-label-small">🏛️ SANSAD</div>
-                    <div class="field-value-small">${escapeHtml(rec.sansad)}</div>
-                </div>
-                <div class="field-item">
-                    <div class="field-label-small">🪪 JOB CARD NO.</div>
-                    <div class="field-value-small">${escapeHtml(rec.jobCard)}</div>
-                </div>
-                <div class="field-item">
-                    <div class="field-label-small">👤 APPLICANT NAME</div>
-                    <div class="field-value-small">${escapeHtml(rec.applicantName)}</div>
-                </div>
-                <div class="field-item">
-                    <div class="field-label-small">📌 EXISTING REASON</div>
-                    <div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div>
-                </div>
-            </div>
-            ${guardianHtml}
-            <select class="remark-select" id="remarkSelect">${opts}</select>
-            <div class="action-buttons">
-                <button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button>
-                <button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button>
-            </div>
-            <div class="completed-hint">✅ After update, this record will be hidden automatically.</div>
-        </div>`; 
-        const c = document.getElementById("cardContainer"); 
-        if(c) c.innerHTML = html; 
+        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden.</div></div>`; 
+        const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; 
         const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); 
         if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } await directUpdate(rec, v); }; 
         if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; 
     }
     
-    async function handleLogin(u, p) { const btn = document.getElementById("loginBtn"); setButtonLoading(btn, true); try { const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); const data = await res.json(); if(data.success) { showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); currentUser = { userName: data.userName || u, fullName: data.fullName || u }; localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); if(await checkIn(currentUser.userName) !== false) { startHeartbeat(); startOnlineCountRefresh(); startStatsRefresh(currentUser.userName); renderMainApp(); } } else { document.getElementById("authError").innerHTML = `<div class="error-msg">${data.error || "Invalid credentials"}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div class="error-msg">Connection error</div>`; } finally { setButtonLoading(btn, false); } }
-    async function handleRegister(fn, un, pw) { const btn = document.getElementById("signupBtn"); setButtonLoading(btn, true); try { const p = new URLSearchParams(); p.append("action", "register"); p.append("fullName", fn); p.append("username", un); p.append("password", pw); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const data = await res.json(); if(data.success) { document.getElementById("authError").innerHTML = `<div class="success-msg">🎉 Account created! Please wait for admin approval.</div>`; showToast("Registered! Redirecting...", "success"); setTimeout(() => renderAuthPage(), 2000); } else { document.getElementById("authError").innerHTML = `<div class="error-msg">${data.error || "Registration failed"}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div class="error-msg">Network error</div>`; } finally { setButtonLoading(btn, false); } }
-    function renderAuthPage() { document.getElementById("app").innerHTML = `<div class="live-counter"><span class="pulse-dot"></span> 👥 Online: <span id="liveCountNumber">0</span></div><div class="auth-card"><div class="auth-title">🔐 KYC Portal</div><div class="auth-sub">MGNREGA • One Account Per Person</div><div id="authError"></div><div class="input-group"><label>👤 User Name</label><input id="loginUsername" placeholder="Enter Username"></div><div class="input-group"><label>🔒 Password</label><input id="loginPassword" type="password" placeholder="Password"></div><button class="auth-btn" id="loginBtn">Sign In</button><div class="switch-mode">New user? <span id="showSignup">Create Account</span></div></div>`; document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); }; document.getElementById("showSignup").onclick = () => renderSignupPage(); getOnlineCount(); }
-    function renderSignupPage() { document.getElementById("app").innerHTML = `<div class="live-counter"><span class="pulse-dot"></span> 👥 Online: <span id="liveCountNumber">0</span></div><div class="auth-card"><div class="auth-title">📝 Create Account</div><div class="auth-sub">⚠️ One account per person only</div><div id="authError"></div><div class="input-group"><label>📋 Surveyor Name</label><input id="signupName" placeholder="Full name"></div><div class="input-group"><label>👤 User Name</label><input id="signupUsername" placeholder="Choose username"></div><div class="input-group"><label>🔒 Password</label><input id="signupPassword" type="password" placeholder="Min 4 characters"></div><button class="auth-btn" id="signupBtn">Register</button><div class="switch-mode">Already have account? <span id="showLogin">Sign In</span></div></div>`; document.getElementById("signupBtn").onclick = () => { const n = document.getElementById("signupName").value.trim(), u = document.getElementById("signupUsername").value.trim(), p = document.getElementById("signupPassword").value.trim(); if(n && u && p) handleRegister(n,u,p); else showToast("All fields required","error"); }; document.getElementById("showLogin").onclick = () => renderAuthPage(); getOnlineCount(); }
-    function logout() { stopHeartbeat(); stopOnlineCountRefresh(); stopStatsRefresh(); checkOut(); showToast("👋 Logged out", "info"); localStorage.removeItem(SESSION_KEY); currentUser = null; sessionId = null; renderAuthPage(); }
-    function startHeartbeat() { if(heartbeatInterval) clearInterval(heartbeatInterval); heartbeatInterval = setInterval(() => sendHeartbeat(), 30000); }
-    function stopHeartbeat() { if(heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; } }
-    function startOnlineCountRefresh() { if(onlineCountInterval) clearInterval(onlineCountInterval); onlineCountInterval = setInterval(() => getOnlineCount(), 20000); }
-    function stopOnlineCountRefresh() { if(onlineCountInterval) { clearInterval(onlineCountInterval); onlineCountInterval = null; } }
-    function startStatsRefresh(un) { if(statsRefreshInterval) clearInterval(statsRefreshInterval); statsRefreshInterval = setInterval(() => { getMyUpdates(un); getAllUsersPerformance(); }, 30000); }
-    function stopStatsRefresh() { if(statsRefreshInterval) { clearInterval(statsRefreshInterval); statsRefreshInterval = null; } }
+    async function uploadSingleFromQueue() { 
+        if(pendingQueue.length === 0) return; 
+        const item = pendingQueue[0]; 
+        showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); 
+        try { 
+            const p = new URLSearchParams(); 
+            p.append("action", "updateRemarks"); 
+            p.append("sheetRow", item.sheetRow); 
+            p.append("newRemarks", item.newRemarks); 
+            p.append("userName", currentUser.userName); 
+            const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); 
+            const result = await res.json(); 
+            if(result.success) { 
+                pendingQueue.shift(); saveQueue(); 
+                const cached = allRecords.find(r => r.sheetRow === item.sheetRow); 
+                if(cached) cached.currentRemark = item.newRemarks; 
+                if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } 
+                showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); 
+                await getMyUpdates(currentUser.userName); 
+                await getAllUsersPerformance(); 
+                await getMyTodayKycCount(currentUser.userName);
+                await getTodayKycCount();
+                updateBarChart(); 
+            } else { showToast(`❌ Failed`, "error"); } 
+        } catch(e) { showToast("Error", "error"); } 
+        hideProgress(); 
+    }
+    
+    async function uploadAllFromQueue() { 
+        if(pendingQueue.length === 0) return; 
+        const total = pendingQueue.length; 
+        for(let i=0; i<pendingQueue.length; i++) { 
+            const item = pendingQueue[i]; 
+            showProgress(i+1, total, `Uploading ${item.applicantName}`); 
+            try { 
+                const p = new URLSearchParams(); 
+                p.append("action", "updateRemarks"); 
+                p.append("sheetRow", item.sheetRow); 
+                p.append("newRemarks", item.newRemarks); 
+                p.append("userName", currentUser.userName); 
+                await fetch(WEB_APP_URL, { method: "POST", body: p }); 
+                const cached = allRecords.find(r => r.sheetRow === item.sheetRow); 
+                if(cached) cached.currentRemark = item.newRemarks; 
+                await new Promise(r => setTimeout(r, 200)); 
+            } catch(e) {} 
+        } 
+        pendingQueue = []; saveQueue(); hideProgress(); 
+        if(filteredRecord) { filteredRecord = null; resetFilters(); } 
+        showToast(`✅ Batch complete!`, "success"); 
+        await getMyUpdates(currentUser.userName); 
+        await getAllUsersPerformance(); 
+        await getMyTodayKycCount(currentUser.userName);
+        await getTodayKycCount();
+        updateBarChart(); 
+    }
+    
+    async function syncData(isAuto = false) { 
+        if(isAutoSyncing) return; 
+        isAutoSyncing = true; 
+        const syncBtn = document.getElementById("syncBtn");
+        const progressContainer = document.getElementById("syncProgressContainer");
+        const progressFill = document.getElementById("syncProgressFill");
+        const progressText = document.getElementById("syncProgressText");
+        
+        if(!isAuto && syncBtn) syncBtn.disabled = true; 
+        if(progressContainer) progressContainer.style.display = "block";
+        if(progressFill) progressFill.style.width = "0%";
+        if(progressText) progressText.innerText = "Connecting...";
+        
+        const container = document.getElementById("cardContainer"); 
+        if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; 
+        
+        try { 
+            if(progressFill) progressFill.style.width = "30%";
+            if(progressText) progressText.innerText = "Fetching data...";
+            
+            const res = await fetch(WEB_APP_URL + "?action=getData"); 
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
+            
+            const raw = await res.json(); 
+            console.log("Data received:", raw.length, "rows");
+            
+            if(progressFill) progressFill.style.width = "70%";
+            if(progressText) progressText.innerText = "Processing...";
+            
+            allRecords = raw.map((row, i) => ({ 
+                sheetRow: i+2, 
+                sansad: row[COL_SANSAD] || "—", 
+                jobCard: row[COL_JOB_CARD] || "—", 
+                applicantName: row[COL_APPLICANT_NAME] || "—",
+                guardian: row[COL_GUARDIAN] || "—",
+                reason: row[COL_REASON] || "—", 
+                currentRemark: row[COL_NEW_REMARKS] || "" 
+            })); 
+            
+            if(progressFill) progressFill.style.width = "100%";
+            if(progressText) progressText.innerText = "Complete!";
+            setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 1000);
+            
+            const ac = getActiveRecords().length; 
+            const uniqueSansadCount = getUniqueSansadCount(); 
+            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; 
+            if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; 
+            
+            updateFilterDisplays(); 
+            updateBarChart(); 
+            populateSansadDropdown();
+            resetFilters(); 
+            if(!isAuto) showToast(`📥 Synced! ${ac} pending rows`, "success"); 
+            if(currentUser) { 
+                await getMyUpdates(currentUser.userName); 
+                await getAllUsersPerformance();
+                await getMyTodayKycCount(currentUser.userName);
+                await getTodayKycCount();
+            } 
+        } catch(e) { 
+            console.error("Sync error:", e);
+            if(progressText) progressText.innerText = "Failed: " + e.message;
+            if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed: ${e.message}<br><br>Make sure URL is correct and GS is deployed</div>`;
+            if(!isAuto) showToast("❌ Sync failed", "error"); 
+        } finally { 
+            isAutoSyncing = false; 
+            if(!isAuto && syncBtn) syncBtn.disabled = false; 
+        } 
+    }
+    
+    // ==================== API CALLS ====================
+    async function checkIn(userName) {
+        if (!sessionId) sessionId = generateSessionId();
+        try {
+            const payload = new URLSearchParams();
+            payload.append("action", "checkIn"); payload.append("userName", userName); payload.append("sessionId", sessionId);
+            await fetch(WEB_APP_URL, { method: "POST", body: payload });
+            return true;
+        } catch (err) { return true; }
+    }
+    
+    async function getMyUpdates(userName) { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); 
+            const data = await res.json(); 
+            const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; 
+        } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } 
+    }
+    
+    async function getAllUsersPerformance() { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); 
+            const data = await res.json(); 
+            const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; 
+        } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } 
+    }
+    
+    // Get today's MY KYC count (current user only)
+    async function getMyTodayKycCount(userName) { 
+        try { 
+            console.log("Fetching today's MY KYC for:", userName);
+            const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); 
+            const data = await res.json(); 
+            console.log("My Today's KYC response:", data);
+            const s = document.getElementById("myTodayKycValue"); 
+            if(s) {
+                const count = data.success ? data.count : 0;
+                s.innerText = count;
+                if(count > 0) {
+                    s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)";
+                    s.style.color = "white";
+                } else {
+                    s.style.background = "white";
+                    s.style.color = "#ec4899";
+                }
+            }
+            return data;
+        } catch(e) { 
+            console.error("My Today's KYC error:", e);
+            const s = document.getElementById("myTodayKycValue"); 
+            if(s) s.innerText = "0"; 
+            return { success: false, count: 0 };
+        } 
+    }
+    
+    // Get today's TOTAL KYC count (all users)
+    async function getTodayKycCount() { 
+        try { 
+            console.log("Fetching today's TOTAL KYC DONE count (ALL USERS)...");
+            const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); 
+            const data = await res.json(); 
+            console.log("Total Today's KYC response:", data);
+            const s = document.getElementById("totalTodayKycValue"); 
+            if(s) {
+                const count = data.success ? data.count : 0;
+                s.innerText = count;
+                if(count > 0) {
+                    s.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                    s.style.color = "white";
+                } else {
+                    s.style.background = "white";
+                    s.style.color = "#ec4899";
+                }
+            }
+            return data;
+        } catch(e) { 
+            console.error("Total Today's KYC error:", e);
+            const s = document.getElementById("totalTodayKycValue"); 
+            if(s) s.innerText = "0"; 
+            return { success: false, count: 0 };
+        } 
+    }
+    
+    // ==================== AUTH ====================
+    async function handleLogin(u, p) { 
+        const btn = document.getElementById("loginBtn"); 
+        btn.disabled = true; btn.textContent = "Logging in...";
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); 
+            const data = await res.json(); 
+            if(data.success) { 
+                showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); 
+                currentUser = { userName: data.userName || u, fullName: data.fullName || u }; 
+                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); 
+                await checkIn(currentUser.userName); 
+                renderMainApp(); 
+            } else { 
+                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error || "Invalid credentials"}</div>`; 
+            } 
+        } catch(e) { 
+            document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Connection error: ${e.message}</div>`; 
+        } finally { 
+            btn.disabled = false; btn.textContent = "Sign In";
+        } 
+    }
+    
+    function renderAuthPage() { 
+        document.getElementById("app").innerHTML = `
+            <div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div>
+            <div style="text-align:center;font-size:0.7rem;color:#64748b;margin-bottom:28px;">MGNREGA</div>
+            <div id="authError"></div>
+            <div style="margin-bottom:18px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+            <div style="margin-bottom:18px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+            <button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button>
+            <div style="text-align:center;margin-top:20px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;">Create Account</span></div></div>
+        `;
+        document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); };
+        document.getElementById("showSignup").onclick = () => renderSignupPage();
+    }
+    
+    function renderSignupPage() {
+        document.getElementById("app").innerHTML = `
+            <div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div>
+            <div id="authError"></div>
+            <div style="margin-bottom:18px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+            <div style="margin-bottom:18px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+            <div style="margin-bottom:18px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
+            <button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button>
+            <div style="text-align:center;margin-top:20px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;">Back to Login</span></div></div>
+        `;
+        document.getElementById("signupBtn").onclick = async () => {
+            const n = document.getElementById("signupName").value.trim();
+            const u = document.getElementById("signupUsername").value.trim();
+            const p = document.getElementById("signupPassword").value.trim();
+            if(!n || !u || !p) { showToast("All fields required", "error"); return; }
+            try {
+                const params = new URLSearchParams();
+                params.append("action", "register");
+                params.append("fullName", n);
+                params.append("username", u);
+                params.append("password", p);
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: params });
+                const data = await res.json();
+                if(data.success) {
+                    showToast("Registered! Please wait for admin approval.", "success");
+                    setTimeout(() => renderAuthPage(), 2000);
+                } else {
+                    document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error}</div>`;
+                }
+            } catch(e) {
+                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Network error</div>`;
+            }
+        };
+        document.getElementById("showLogin").onclick = () => renderAuthPage();
+    }
     
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
-            <div class="user-header"><div class="user-info"><span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span><span class="user-role">Surveyor</span></div><div class="user-stats"><div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div><div class="divider"></div><div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(currentUser) getMyUpdates(currentUser.userName)" title="Refresh">⟳</button></div><div class="divider"></div><div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="getAllUsersPerformance()" title="Refresh">⟳</button></div></div><button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div class="header"><div class="header-left"><h1>📋 KYC Portal</h1><div class="sync-status" id="syncStatus">📦 Ready (pending records shown)</div></div><div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div class="chart-legend">Loading...</div></div></div>
-            <div class="queue-bar" id="queueBar" style="display:none;"><div class="queue-info"><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
-            <div class="sync-container"><div class="sync-info"><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
-            <div class="filter-section"><div class="filter-title">🔍 Find Pending Record (Remark not filled)</div><div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter by Dropdown</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search (Starts With)</button></div>
-            <div id="filterSelects">
-                <div class="filter-row"><div class="filter-label"><span>🏛️ Sansad (Unique with pending)</span><span class="filter-count" id="sansadCount">0</span></div><select id="filterSansad" class="filter-select"><option>Loading...</option></select></div>
-                <div class="filter-row"><div class="filter-label"><span>🪪 Job Card (Unique pending under selected Sansad)</span><span class="filter-count" id="jobCardCount">0</span></div><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select></div>
-                <div class="filter-row"><div class="filter-label"><span>👤 Applicant (Unique pending under selected Job Card)</span><span class="filter-count" id="applicantCount">0</span></div><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select></div>
-                <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button>
+            <div class="user-header"><div><span style="font-weight:800;">👋 ${escapeHtml(currentUser.fullName)}</span><span style="font-size:0.6rem;color:#8b5cf6;margin-left:8px;">Surveyor</span></div>
+            <div class="user-stats"><div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div>
+            <div class="divider"></div><div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyUpdates(window.currentUser.userName)">⟳</button></div>
+            <div class="divider"></div><div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="window.getAllUsersPerformance()">⟳</button></div>
+            <div class="divider"></div><div class="stat-item"><span class="stat-label">📅 Today's My KYC:</span><span class="stat-value my-today-kyc" id="myTodayKycValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyTodayKycCount(window.currentUser.userName)">⟳</button></div>
+            <div class="divider"></div><div class="stat-item"><span class="stat-label">📅 Today's Total KYC:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div></div>
+            <button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
+            <div style="background:white;border-radius:28px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div><h1 style="font-size:1.4rem;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📋 KYC Portal</h1><div id="syncStatus" style="background:linear-gradient(135deg,#10b98120,#05966920);display:inline-block;padding:3px 10px;border-radius:40px;font-size:0.6rem;">📦 Ready</div></div>
+                <div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div style="font-size:0.5rem;text-align:center;">Loading...</div></div>
             </div>
-            <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card No. or Sansad"><div class="search-hint" style="font-size:0.6rem;color:#8b5cf6;margin-top:4px;">🔎 Left-to-right matching (starts with)</div></div></div>
-            <div id="cardContainer"><div class="waiting-card"><div class="loading-spinner"></div><div>Loading data...</div></div></div>
-            <div class="footer-note">✅ Two-column layout shows all details compactly | Bar chart: Counts on top, Roman numerals (I,II,III...)</div>
+            <div class="queue-bar" id="queueBar" style="display:none;"><div><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
+            <div class="sync-container"><div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
+            <div id="syncProgressContainer" class="sync-progress-container" style="display:none;"><div class="sync-progress-bar-bg"><div id="syncProgressFill" class="sync-progress-fill"></div></div><div id="syncProgressText" class="sync-progress-text">Syncing...</div></div>
+            <div class="filter-section"><div class="filter-title">🔍 Find Pending Record</div><div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search</button></div>
+            <div id="filterSelects"><div class="filter-row"><div class="filter-label"><span>🏛️ Sansad</span><span class="filter-count" id="sansadCount">0</span></div><select id="filterSansad" class="filter-select"><option>Loading...</option></select></div>
+            <div class="filter-row"><div class="filter-label"><span>🪪 Job Card</span><span class="filter-count" id="jobCardCount">0</span></div><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select></div>
+            <div class="filter-row"><div class="filter-label"><span>👤 Applicant</span><span class="filter-count" id="applicantCount">0</span></div><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select></div>
+            <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
+            <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div></div>
+            <div id="cardContainer"><div class="waiting-card">Click Sync to load data</div></div>
+            <div class="footer-note">✅ Today's My KYC: Your "KYC DONE" updates today | Today's Total KYC: All users' "KYC DONE" updates today | Bar chart: Each Sansad has unique color</div>
         `;
+        
+        window.currentUser = currentUser;
+        window.getMyUpdates = getMyUpdates;
+        window.getAllUsersPerformance = getAllUsersPerformance;
+        window.getMyTodayKycCount = getMyTodayKycCount;
+        window.getTodayKycCount = getTodayKycCount;
+        
         loadQueue(); 
-        loadFromLocalCache(); 
         if(allRecords.length) { 
             populateSansadDropdown(); 
             resetFilters(); 
@@ -912,6 +731,7 @@
             updateBarChart(); 
             renderCurrentView(); 
         }
+        
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
         document.getElementById("uploadAllBtn").onclick = uploadAllFromQueue;
@@ -922,12 +742,32 @@
         document.getElementById("modeFilterBtn").onclick = () => { currentMode = "filter"; toggleModeUI(); };
         document.getElementById("modeSearchBtn").onclick = () => { currentMode = "search"; toggleModeUI(); };
         const si = document.getElementById("globalSearchInput"); if(si) si.addEventListener("input", () => { searchQuery = si.value; performSearchAndRender(); });
-        document.getElementById("logoutBtn").onclick = logout;
-        setTimeout(() => syncData(true), 200);
-        getOnlineCount(); getMyUpdates(currentUser.userName); getAllUsersPerformance();
+        document.getElementById("logoutBtn").onclick = () => { localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
+        
+        setTimeout(() => syncData(true), 500);
+        getMyUpdates(currentUser.userName); 
+        getAllUsersPerformance();
+        getMyTodayKycCount(currentUser.userName);
+        getTodayKycCount();
+        
+        // Get online count
+        fetch(`${WEB_APP_URL}?action=getOnlineCount`)
+            .then(res => res.json())
+            .then(data => { if(data.success) document.getElementById("onlineCountValue").innerText = data.count; })
+            .catch(() => {});
     }
     
-    function init() { const s = localStorage.getItem(SESSION_KEY); if(s) { try { currentUser = JSON.parse(s); renderMainApp(); checkIn(currentUser.userName).then(success => { if(success !== false) { startHeartbeat(); startOnlineCountRefresh(); startStatsRefresh(currentUser.userName); } }); } catch(e) { renderAuthPage(); } } else { renderAuthPage(); } window.addEventListener("beforeunload", () => { checkOut(); stopHeartbeat(); stopStatsRefresh(); }); }
+    function init() { 
+        const savedUser = localStorage.getItem(SESSION_KEY); 
+        if(savedUser) { 
+            try { 
+                currentUser = JSON.parse(savedUser); 
+                window.currentUser = currentUser;
+                renderMainApp(); 
+                checkIn(currentUser.userName); 
+            } catch(e) { renderAuthPage(); } 
+        } else { renderAuthPage(); } 
+    }
     init();
 </script>
 </body>
