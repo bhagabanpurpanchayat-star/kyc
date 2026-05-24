@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Dual KYC Counters | Mandatory Remark & Confirmation</title>
+    <title>KYC Portal - Dual KYC Counters</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; }
         .app { max-width: 500px; margin: 0 auto; }
         
-        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; font-size: 0.85rem; white-space: nowrap; }
+        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; font-size: 0.85rem; white-space: nowrap; z-index: 9999; }
         .waiting-card { text-align: center; padding: 40px 20px; background: white; border-radius: 24px; }
         .loading-spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #ec4899; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -22,75 +22,70 @@
         .stat-value.today-kyc { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .stat-value.my-today-kyc { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
         .user-header { background: white; border-radius: 28px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .user-stats { display: flex; align-items: center; gap: 12px; background: #f1f5f9; padding: 6px 14px; border-radius: 40px; flex-wrap: wrap; }
-        .stat-item { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; }
+        .user-stats { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 12px; border-radius: 40px; flex-wrap: wrap; }
+        .stat-item { display: flex; align-items: center; gap: 4px; font-size: 0.65rem; }
         .stat-label { color: #64748b; }
-        .stat-value { font-weight: 800; color: #ec4899; background: white; padding: 2px 8px; border-radius: 20px; min-width: 35px; text-align: center; }
-        .divider { width: 1px; height: 20px; background: #cbd5e1; }
-        .logout-btn { background: #ef4444; border: none; padding: 8px 20px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; }
-        .sync-container { background: white; border-radius: 60px; padding: 12px 20px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .record-count { font-size: 0.7rem; color: #475569; }
-        .last-sync { font-size: 0.6rem; color: #6b7280; }
-        .filter-section { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; }
-        .filter-title { font-size: 0.75rem; font-weight: 700; color: #4c1d95; margin-bottom: 12px; }
-        .filter-row { margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; }
-        .filter-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.7rem; font-weight: 700; color: #475569; }
-        .filter-count { background: #8b5cf6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.65rem; }
+        .stat-value { font-weight: 800; color: #ec4899; background: white; padding: 2px 6px; border-radius: 20px; min-width: 30px; text-align: center; font-size: 0.7rem; }
+        .divider { width: 1px; height: 16px; background: #cbd5e1; }
+        .logout-btn { background: #ef4444; border: none; padding: 6px 16px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; font-size: 0.7rem; }
+        .sync-container { background: white; border-radius: 60px; padding: 10px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .record-count { font-size: 0.65rem; color: #475569; }
+        .last-sync { font-size: 0.55rem; color: #6b7280; }
+        .filter-section { background: white; border-radius: 24px; padding: 14px; margin-bottom: 16px; }
+        .filter-title { font-size: 0.7rem; font-weight: 700; color: #4c1d95; margin-bottom: 10px; }
+        .filter-row { margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .filter-label { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.65rem; font-weight: 700; color: #475569; }
+        .filter-count { background: #8b5cf6; color: white; padding: 2px 8px; border-radius: 30px; font-size: 0.6rem; }
         .filter-count.zero { background: #ef4444; }
-        .filter-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 16px; background: white; }
-        .reset-filter-btn { background: #f1f5f9; border: none; padding: 8px; border-radius: 40px; width: 100%; cursor: pointer; font-size: 0.7rem; margin-top: 8px; }
-        .data-card { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; }
-        .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .field-item { background: #f8fafc; border-radius: 16px; padding: 10px 12px; border: 1px solid #e2e8f0; }
+        .filter-select { width: 100%; padding: 10px 12px; font-size: 0.8rem; border: 1px solid #e2e8f0; border-radius: 16px; background: white; }
+        .reset-filter-btn { background: #f1f5f9; border: none; padding: 6px; border-radius: 40px; width: 100%; cursor: pointer; font-size: 0.65rem; margin-top: 6px; }
+        .data-card { background: white; border-radius: 24px; padding: 14px; margin-bottom: 16px; }
+        .two-column-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .field-item { background: #f8fafc; border-radius: 14px; padding: 8px 10px; border: 1px solid #e2e8f0; }
         .field-item-full { grid-column: span 2; }
-        .field-label-small { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; color: #8b5cf6; margin-bottom: 4px; }
-        .field-value-small { font-size: 0.85rem; font-weight: 600; color: #0f172a; }
-        .reason-value { background: #fef3c7; display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; }
-        .guardian-info { background: #f0fdf4; padding: 8px 12px; border-radius: 12px; border-left: 3px solid #22c55e; }
-        .remark-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1.5px solid #e2e8f0; border-radius: 16px; margin: 12px 0; cursor: pointer; }
-        .action-buttons { display: flex; gap: 12px; margin-top: 12px; }
-        .update-now-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; transition: transform 0.1s; }
-        .update-now-btn:active { transform: scale(0.97); }
-        .save-queue-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; }
-        .completed-hint { background: #e2e8f0; padding: 10px; border-radius: 16px; font-size: 0.7rem; text-align: center; margin-top: 12px; }
-        .queue-bar { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .queue-badge { padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 700; background: #ef4444; color: white; }
-        .upload-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 8px 18px; border-radius: 40px; color: white; cursor: pointer; margin-left: 8px; }
-        .result-item { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; transition: background 0.1s; }
-        .result-item:active { background: #f1f5f9; }
+        .field-label-small { font-size: 0.55rem; text-transform: uppercase; font-weight: 700; color: #8b5cf6; margin-bottom: 3px; }
+        .field-value-small { font-size: 0.75rem; font-weight: 600; color: #0f172a; }
+        .reason-value { background: #fef3c7; display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; }
+        .guardian-info { background: #f0fdf4; padding: 6px 10px; border-radius: 12px; border-left: 3px solid #22c55e; }
+        .remark-select { width: 100%; padding: 10px 12px; font-size: 0.8rem; border: 1.5px solid #e2e8f0; border-radius: 16px; margin: 10px 0; cursor: pointer; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .update-now-btn { flex: 1; padding: 10px; border-radius: 40px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; font-size: 0.75rem; }
+        .save-queue-btn { flex: 1; padding: 10px; border-radius: 40px; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; font-size: 0.75rem; }
+        .completed-hint { background: #e2e8f0; padding: 8px; border-radius: 16px; font-size: 0.65rem; text-align: center; margin-top: 10px; }
+        .queue-bar { background: white; border-radius: 24px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .queue-badge { padding: 5px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 700; background: #ef4444; color: white; }
+        .upload-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 6px 14px; border-radius: 40px; color: white; cursor: pointer; margin-left: 6px; font-size: 0.7rem; }
+        .result-item { background: white; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; }
         .result-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .result-name { font-weight: 700; font-size: 0.8rem; }
-        .refresh-icon { background: none; border: none; font-size: 0.7rem; cursor: pointer; padding: 2px 6px; border-radius: 20px; }
-        .search-filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-        .mode-toggle { background: #f1f5f9; border: none; padding: 8px 18px; border-radius: 40px; font-weight: 600; font-size: 0.7rem; cursor: pointer; }
+        .result-name { font-weight: 700; font-size: 0.75rem; }
+        .refresh-icon { background: none; border: none; font-size: 0.65rem; cursor: pointer; padding: 2px 4px; border-radius: 20px; }
+        .search-filter-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .mode-toggle { background: #f1f5f9; border: none; padding: 6px 14px; border-radius: 40px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
         .mode-toggle.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
         .progress-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 2000; }
         .progress-card { background: white; border-radius: 32px; padding: 32px 24px; text-align: center; }
         .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 12px; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #ec4899, #db2777); width: 0%; transition: width 0.3s; }
-        .footer-note { text-align: center; font-size: 0.6rem; color: rgba(255,255,255,0.9); margin-top: 20px; }
-        .chart-container { background: #f8fafc; border-radius: 20px; padding: 8px; min-width: 160px; }
-        .chart-title { font-size: 0.55rem; font-weight: 700; color: #64748b; text-align: center; margin-bottom: 6px; }
-        .chart-bars { display: flex; gap: 6px; justify-content: center; align-items: flex-end; height: 70px; }
+        .footer-note { text-align: center; font-size: 0.55rem; color: rgba(255,255,255,0.9); margin-top: 16px; }
+        .chart-container { background: #f8fafc; border-radius: 20px; padding: 6px; min-width: 140px; }
+        .chart-title { font-size: 0.5rem; font-weight: 700; color: #64748b; text-align: center; margin-bottom: 4px; }
+        .chart-bars { display: flex; gap: 4px; justify-content: center; align-items: flex-end; height: 60px; }
         .chart-bar-item { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
-        .bar-value-top { font-size: 0.55rem; font-weight: 800; color: #4f46e5; margin-bottom: 3px; text-align: center; white-space: nowrap; }
-        .bar { width: 100%; max-width: 24px; border-radius: 4px 4px 3px 3px; min-height: 3px; transition: height 0.3s ease; margin: 0 auto; }
-        .bar-label { font-size: 0.55rem; font-weight: 800; color: #475569; margin-top: 5px; text-align: center; }
-        .chart-legend { font-size: 0.5rem; color: #94a3b8; text-align: center; margin-top: 5px; }
-        .online-dot-small { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
+        .bar-value-top { font-size: 0.5rem; font-weight: 800; color: #4f46e5; margin-bottom: 2px; text-align: center; white-space: nowrap; }
+        .bar { width: 100%; max-width: 20px; border-radius: 3px 3px 2px 2px; min-height: 3px; transition: height 0.3s ease; margin: 0 auto; }
+        .bar-label { font-size: 0.5rem; font-weight: 800; color: #475569; margin-top: 3px; text-align: center; }
+        .chart-legend { font-size: 0.45rem; color: #94a3b8; text-align: center; margin-top: 3px; }
+        .online-dot-small { width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
-        /* Custom Confirmation Modal */
+        
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(4px); }
-        .confirmation-modal { background: white; border-radius: 32px; max-width: 340px; width: 85%; padding: 24px 20px; text-align: center; animation: fadeInUp 0.2s ease; box-shadow: 0 25px 40px rgba(0,0,0,0.3); }
-        .confirmation-modal h3 { font-size: 1.3rem; margin-bottom: 12px; color: #1e293b; }
-        .confirmation-modal p { font-size: 0.85rem; color: #475569; margin-bottom: 16px; line-height: 1.4; }
-        .confirmation-modal .remark-preview { background: #fef3c7; padding: 10px 14px; border-radius: 28px; font-weight: 700; margin: 12px 0; font-size: 0.85rem; color: #92400e; word-break: break-word; border-left: 3px solid #f59e0b; }
-        .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
-        .modal-buttons button { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; transition: opacity 0.1s; }
+        .confirmation-modal { background: white; border-radius: 28px; max-width: 300px; width: 85%; padding: 20px 16px; text-align: center; }
+        .confirmation-modal h3 { font-size: 1.1rem; margin-bottom: 10px; }
+        .confirmation-modal .remark-preview { background: #fef3c7; padding: 8px 12px; border-radius: 24px; font-weight: 700; margin: 10px 0; font-size: 0.75rem; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 16px; }
+        .modal-buttons button { flex: 1; padding: 10px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; font-size: 0.75rem; }
         .confirm-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .cancel-btn { background: #e2e8f0; color: #475569; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .remark-select.error-border { border-color: #ef4444; background-color: #fef2f2; }
     </style>
 </head>
 <body>
@@ -98,7 +93,7 @@
 
 <script>
     // ==================== CONFIGURATION ====================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_rDeNCe_h2tBhcrEX3WYXnMXy9KsUBJsTAOGBMi-fXCE7rr1Iv5chKcnpLw0-j0K0Ew/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzhX-LYua62PlA30E6mkBZdwk9OJHzlYsUnYEY63cGhcC4m6cNu5S6UNz7p84cNmgBm/exec";
     
     const COL_SANSAD = 3;
     const COL_JOB_CARD = 4;
@@ -124,9 +119,13 @@
     let isAutoSyncing = false;
     let currentMode = "filter";
     let searchQuery = "";
+    let heartbeatInterval = null;
+    let onlinePollInterval = null;
     
     const QUEUE_KEY = "kyc_queue_v7";
     const SESSION_KEY = "kyc_session";
+    const HEARTBEAT_INTERVAL = 45 * 1000;
+    const ONLINE_POLL_INTERVAL = 20 * 1000;
     
     function generateSessionId() { return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
     function escapeHtml(s) { if(!s) return ""; return String(s).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
@@ -142,33 +141,23 @@
         setTimeout(() => t.remove(), 2600); 
     }
     
-    // ========== CONFIRMATION MODAL (Mandatory before update) ==========
     function showConfirmationModal(remark, applicantName, onConfirm, onCancel) {
-        const existingModal = document.querySelector(".modal-overlay");
-        if (existingModal) existingModal.remove();
-        
         const modalDiv = document.createElement("div");
         modalDiv.className = "modal-overlay";
         modalDiv.innerHTML = `
             <div class="confirmation-modal">
-                <h3>⚠️ Confirm KYC Update</h3>
-                <p>You are about to update record for <strong>${escapeHtml(applicantName)}</strong></p>
+                <h3>⚠️ Confirm Update</h3>
+                <p style="font-size:0.7rem;">Update for <strong>${escapeHtml(applicantName)}</strong></p>
                 <div class="remark-preview">📌 ${escapeHtml(remark)}</div>
-                <p style="font-size:0.75rem;">This action cannot be undone. The record will be marked as completed.</p>
                 <div class="modal-buttons">
-                    <button class="confirm-btn" id="confirmUpdateBtn">✅ Yes, Update</button>
-                    <button class="cancel-btn" id="cancelUpdateBtn">❌ Cancel</button>
+                    <button class="confirm-btn">✅ Update</button>
+                    <button class="cancel-btn">❌ Cancel</button>
                 </div>
             </div>
         `;
         document.body.appendChild(modalDiv);
-        
-        const confirmBtn = modalDiv.querySelector("#confirmUpdateBtn");
-        const cancelBtn = modalDiv.querySelector("#cancelUpdateBtn");
-        
-        const cleanup = () => { if (modalDiv && modalDiv.remove) modalDiv.remove(); };
-        confirmBtn.onclick = () => { cleanup(); if (onConfirm) onConfirm(); };
-        cancelBtn.onclick = () => { cleanup(); if (onCancel) onCancel(); };
+        modalDiv.querySelector(".confirm-btn").onclick = () => { modalDiv.remove(); onConfirm(); };
+        modalDiv.querySelector(".cancel-btn").onclick = () => { modalDiv.remove(); if(onCancel) onCancel(); };
     }
     
     function showProgress(c, t, m) { 
@@ -176,7 +165,7 @@
         if(o) o.remove(); 
         o = document.createElement("div"); 
         o.className = "progress-overlay"; 
-        o.innerHTML = `<div class="progress-card"><div>${m}</div><div style="font-size:1.5rem;font-weight:800;margin:12px 0;">${c}/${t}</div><div class="progress-bar"><div class="progress-fill" style="width:${(c/t)*100}%"></div></div></div>`; 
+        o.innerHTML = `<div class="progress-card"><div>${m}</div><div style="font-size:1.3rem;font-weight:800;margin:10px 0;">${c}/${t}</div><div class="progress-bar"><div class="progress-fill" style="width:${(c/t)*100}%"></div></div></div>`; 
         document.body.appendChild(o); 
         if(c === t) setTimeout(() => o.remove(), 800); 
     }
@@ -190,7 +179,7 @@
         if(pendingQueue.some(i => i.sheetRow === r.sheetRow)) { showToast("⚠️ Already in queue!", "error"); return false; } 
         pendingQueue.push({ sheetRow: r.sheetRow, newRemarks: rm, sansad: r.sansad, jobCard: r.jobCard, applicantName: r.applicantName }); 
         saveQueue(); 
-        showToast(`💾 Saved to queue (${pendingQueue.length} pending)`, "warning"); 
+        showToast(`💾 Saved (${pendingQueue.length} pending)`, "warning"); 
         return true; 
     }
     
@@ -234,11 +223,11 @@
         const maxCount = Math.max(...Array.from(counts.values()), 1);
         const chartContainer = document.getElementById("barChartContainer");
         if(!chartContainer) return;
-        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No completed records yet</div>`; return; }
+        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No records yet</div>`; return; }
         let barsHtml = `<div class="chart-title">✓ KYC Completed</div><div class="chart-bars">`;
         sansads.forEach((sansad, idx) => {
             const count = counts.get(sansad) || 0;
-            const height = Math.max(8, Math.min(45, (count / maxCount) * 45));
+            const height = Math.max(6, Math.min(40, (count / maxCount) * 40));
             const romanLabel = toRomanLabel(sansad);
             const gradient = getColorForSansad(idx);
             barsHtml += `<div class="chart-bar-item"><div class="bar-value-top">${count}</div><div class="bar" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label">${romanLabel}</div></div>`;
@@ -299,25 +288,17 @@
     
     function performSearchAndRender() { const inp = document.getElementById("globalSearchInput"); if(!inp) return; searchQuery = inp.value; if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } const results = searchRecords(searchQuery); if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } }
     
-    function renderCompactResultList(records) { const container = document.getElementById("cardContainer"); if(!container) return; let html = `<div style="font-size:0.7rem;text-align:center;margin-bottom:10px;">📋 ${records.length} results · tap to update</div>`; records.forEach(rec => { html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.65rem;background:#f1f5f9;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.65rem;background:#ede9fe;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.55rem;">→</span></div></div>`; }); container.innerHTML = html; records.forEach(rec => { const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; }); }
+    function renderCompactResultList(records) { const container = document.getElementById("cardContainer"); if(!container) return; let html = `<div style="font-size:0.65rem;text-align:center;margin-bottom:8px;">📋 ${records.length} results · tap to update</div>`; records.forEach(rec => { html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.6rem;background:#f1f5f9;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.6rem;background:#ede9fe;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.5rem;">→</span></div></div>`; }); container.innerHTML = html; records.forEach(rec => { const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; }); }
     
     function renderWaitingWithMessage(msg) { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">${msg}</div>`; }
-    function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; }
+    function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.6rem;">(${uniqueSansadCount} Sansads pending)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; }
     function renderCurrentView() { if(currentMode === "filter") { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } }
     function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found</div>`; }
     
-    // ========== UPDATE WITH MANDATORY REMARK + CONFIRMATION ==========
     async function directUpdateWithConfirmation(rec, rm) { 
-        if(!rm || rm.trim() === "") { 
-            showToast("⚠️ Remark is mandatory! Please select an option before updating.", "error");
-            // highlight dropdown
-            const sel = document.getElementById("remarkSelect");
-            if(sel) { sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); }
-            return false; 
-        }
-        // Show confirmation modal first
+        if(!rm || rm.trim() === "") { showToast("⚠️ Remark is mandatory!", "error"); return false; }
         showConfirmationModal(rm, rec.applicantName, async () => {
-            showProgress(1,1,"Updating KYC record..."); 
+            showProgress(1,1,"Updating..."); 
             try { 
                 const p = new URLSearchParams(); 
                 p.append("action", "updateRemarks"); 
@@ -329,7 +310,7 @@
                 if(result.success) { 
                     rec.currentRemark = rm; 
                     hideProgress(); 
-                    showToast("✅ KYC Updated Successfully!", "success"); 
+                    showToast("✅ Updated!", "success"); 
                     filteredRecord = null; 
                     resetFilters(); 
                     await getMyUpdates(currentUser.userName); 
@@ -340,58 +321,290 @@
                     updateBarChart(); 
                     renderCurrentView();
                     return true; 
-                } else { hideProgress(); showToast(`❌ Failed: ${result?.error || "Unknown error"}`, "error"); return false; } 
-            } catch(e) { hideProgress(); showToast(`❌ Network error: ${e.message}`, "error"); return false; } 
-        }, () => { showToast("Update cancelled", "warning"); });
+                } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } 
+            } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } 
+        }, () => { showToast("Cancelled", "warning"); });
         return false;
     }
     
     function renderSingleRecord(rec) { 
         if(!rec) { renderCurrentView(); return; } 
-        let opts = `<option value="">-- Select remark (required) --</option>`; 
+        let opts = `<option value="">-- Select remark --</option>`; 
         DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); 
         let guardianHtml = "";
         if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "") {
             guardianHtml = `<div class="field-item field-item-full"><div class="field-label-small">👨‍👩‍👧 GUARDIAN</div><div class="field-value-small guardian-info">${escapeHtml(rec.guardian)}</div></div>`;
         }
-        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">⚠️ Remark must be selected. Confirmation popup will appear before update.</div></div>`; 
+        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden.</div></div>`; 
         const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; 
         const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); 
-        if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("❌ Mandatory: Please select a remark first!", "error"); sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); return; } await directUpdateWithConfirmation(rec, v); }; 
-        if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("❌ Cannot save to queue without a remark", "error"); sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; showToast("Saved to queue", "success"); } }; 
+        if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } await directUpdateWithConfirmation(rec, v); }; 
+        if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; 
     }
     
     async function uploadSingleFromQueue() { if(pendingQueue.length === 0) return; const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); } else { showToast(`❌ Failed`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
     async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); hideProgress(); if(filteredRecord) { filteredRecord = null; resetFilters(); } showToast(`✅ Batch complete!`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); }
     
-    async function syncData(isAuto = false) { if(isAutoSyncing) return; isAutoSyncing = true; const syncBtn = document.getElementById("syncBtn"); const progressContainer = document.getElementById("syncProgressContainer"); const progressFill = document.getElementById("syncProgressFill"); const progressText = document.getElementById("syncProgressText"); if(!isAuto && syncBtn) syncBtn.disabled = true; if(progressContainer) progressContainer.style.display = "block"; if(progressFill) progressFill.style.width = "0%"; if(progressText) progressText.innerText = "Connecting..."; const container = document.getElementById("cardContainer"); if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; try { if(progressFill) progressFill.style.width = "30%"; if(progressText) progressText.innerText = "Fetching data..."; const res = await fetch(WEB_APP_URL + "?action=getData"); if(!res.ok) throw new Error(`HTTP ${res.status}`); const raw = await res.json(); if(progressFill) progressFill.style.width = "70%"; if(progressText) progressText.innerText = "Processing..."; allRecords = raw.map((row, i) => ({ sheetRow: i+2, sansad: row[COL_SANSAD] || "—", jobCard: row[COL_JOB_CARD] || "—", applicantName: row[COL_APPLICANT_NAME] || "—", guardian: row[COL_GUARDIAN] || "—", reason: row[COL_REASON] || "—", currentRemark: row[COL_NEW_REMARKS] || "" })); if(progressFill) progressFill.style.width = "100%"; if(progressText) progressText.innerText = "Complete!"; setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 1000); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; updateFilterDisplays(); updateBarChart(); populateSansadDropdown(); resetFilters(); if(!isAuto) showToast(`📥 Synced! ${ac} pending rows`, "success"); if(currentUser) { await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); } } catch(e) { console.error("Sync error:", e); if(progressText) progressText.innerText = "Failed: " + e.message; if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed: ${e.message}<br><br>Make sure URL is correct</div>`; if(!isAuto) showToast("❌ Sync failed", "error"); } finally { isAutoSyncing = false; if(!isAuto && syncBtn) syncBtn.disabled = false; } }
+    async function syncData(isAuto = false) { 
+        if(isAutoSyncing) return; 
+        isAutoSyncing = true; 
+        const syncBtn = document.getElementById("syncBtn");
+        const progressContainer = document.getElementById("syncProgressContainer");
+        const progressFill = document.getElementById("syncProgressFill");
+        const progressText = document.getElementById("syncProgressText");
+        if(!isAuto && syncBtn) syncBtn.disabled = true; 
+        if(progressContainer) progressContainer.style.display = "block";
+        if(progressFill) progressFill.style.width = "0%";
+        if(progressText) progressText.innerText = "Connecting...";
+        const container = document.getElementById("cardContainer"); 
+        if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; 
+        try { 
+            if(progressFill) progressFill.style.width = "30%";
+            if(progressText) progressText.innerText = "Fetching...";
+            const res = await fetch(WEB_APP_URL + "?action=getData"); 
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
+            const raw = await res.json(); 
+            if(progressFill) progressFill.style.width = "70%";
+            if(progressText) progressText.innerText = "Processing...";
+            allRecords = raw.map((row, i) => ({ 
+                sheetRow: i+2, 
+                sansad: row[COL_SANSAD] || "—", 
+                jobCard: row[COL_JOB_CARD] || "—", 
+                applicantName: row[COL_APPLICANT_NAME] || "—",
+                guardian: row[COL_GUARDIAN] || "—",
+                reason: row[COL_REASON] || "—", 
+                currentRemark: row[COL_NEW_REMARKS] || "" 
+            })); 
+            if(progressFill) progressFill.style.width = "100%";
+            if(progressText) progressText.innerText = "Complete!";
+            setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 800);
+            const ac = getActiveRecords().length; 
+            const uniqueSansadCount = getUniqueSansadCount(); 
+            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; 
+            if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleTimeString()}`; 
+            updateFilterDisplays(); 
+            updateBarChart(); 
+            populateSansadDropdown();
+            resetFilters(); 
+            if(!isAuto) showToast(`📥 Synced! ${ac} pending`, "success"); 
+            if(currentUser) { 
+                await getMyUpdates(currentUser.userName); 
+                await getAllUsersPerformance();
+                await getMyTodayKycCount(currentUser.userName);
+                await getTodayKycCount();
+            } 
+        } catch(e) { 
+            console.error("Sync error:", e);
+            if(progressText) progressText.innerText = "Failed";
+            if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed<br><span style="font-size:0.6rem;">Check URL</span></div>`;
+            if(!isAuto) showToast("❌ Sync failed", "error"); 
+        } finally { 
+            isAutoSyncing = false; 
+            if(!isAuto && syncBtn) syncBtn.disabled = false; 
+        } 
+    }
     
-    async function checkIn(userName) { if (!sessionId) sessionId = generateSessionId(); try { const payload = new URLSearchParams(); payload.append("action", "checkIn"); payload.append("userName", userName); payload.append("sessionId", sessionId); await fetch(WEB_APP_URL, { method: "POST", body: payload }); return true; } catch (err) { return true; } }
-    async function getMyUpdates(userName) { try { const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); const data = await res.json(); const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } }
-    async function getAllUsersPerformance() { try { const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); const data = await res.json(); const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } }
-    async function getMyTodayKycCount(userName) { try { const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); const data = await res.json(); const s = document.getElementById("myTodayKycValue"); if(s) { const count = data.success ? data.count : 0; s.innerText = count; if(count > 0) { s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)"; s.style.color = "white"; } else { s.style.background = "white"; s.style.color = "#ec4899"; } } return data; } catch(e) { const s = document.getElementById("myTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } }
-    async function getTodayKycCount() { try { const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); const data = await res.json(); const s = document.getElementById("totalTodayKycValue"); if(s) { const count = data.success ? data.count : 0; s.innerText = count; if(count > 0) { s.style.background = "linear-gradient(135deg, #10b981, #059669)"; s.style.color = "white"; } else { s.style.background = "white"; s.style.color = "#ec4899"; } } return data; } catch(e) { const s = document.getElementById("totalTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } }
+    // ========== ONLINE STATUS - COUNT ONLY (NO USER LIST) ==========
+    async function sendHeartbeat() {
+        if (!currentUser || !sessionId) return;
+        try {
+            const payload = new URLSearchParams();
+            payload.append("action", "heartbeat");
+            payload.append("sessionId", sessionId);
+            await fetch(WEB_APP_URL, { method: "POST", body: payload });
+        } catch(e) { console.log("Heartbeat error:", e); }
+    }
     
-    // Auth handlers (unchanged but essential)
-    async function handleLogin(u, p) { const btn = document.getElementById("loginBtn"); btn.disabled = true; btn.textContent = "Logging in..."; try { const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); const data = await res.json(); if(data.success) { showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); currentUser = { userName: data.userName || u, fullName: data.fullName || u }; localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); await checkIn(currentUser.userName); renderMainApp(); } else { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error || "Invalid credentials"}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Connection error: ${e.message}</div>`; } finally { btn.disabled = false; btn.textContent = "Sign In"; } }
-    function renderAuthPage() { document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div><div style="text-align:center;font-size:0.7rem;color:#64748b;margin-bottom:28px;">MGNREGA</div><div id="authError"></div><div style="margin-bottom:18px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button><div style="text-align:center;margin-top:20px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;">Create Account</span></div></div>`; document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); }; document.getElementById("showSignup").onclick = () => renderSignupPage(); }
-    function renderSignupPage() { document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div><div id="authError"></div><div style="margin-bottom:18px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button><div style="text-align:center;margin-top:20px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;">Back to Login</span></div></div>`; document.getElementById("signupBtn").onclick = async () => { const n = document.getElementById("signupName").value.trim(); const u = document.getElementById("signupUsername").value.trim(); const p = document.getElementById("signupPassword").value.trim(); if(!n || !u || !p) { showToast("All fields required", "error"); return; } try { const params = new URLSearchParams(); params.append("action", "register"); params.append("fullName", n); params.append("username", u); params.append("password", p); const res = await fetch(WEB_APP_URL, { method: "POST", body: params }); const data = await res.json(); if(data.success) { showToast("Registered! Please wait for admin approval.", "success"); setTimeout(() => renderAuthPage(), 2000); } else { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Network error</div>`; } }; document.getElementById("showLogin").onclick = () => renderAuthPage(); }
+    async function fetchOnlineCount() {
+        if (!currentUser) return;
+        try {
+            const response = await fetch(`${WEB_APP_URL}?action=getOnlineCount`);
+            const data = await response.json();
+            if (data.success) {
+                const count = data.count || 0;
+                const onlineSpan = document.getElementById("onlineCountValue");
+                if (onlineSpan) {
+                    onlineSpan.innerText = count;
+                }
+            }
+        } catch(e) { console.log("Online fetch error:", e); }
+    }
+    
+    function startOnlineMonitoring() {
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (onlinePollInterval) clearInterval(onlinePollInterval);
+        sendHeartbeat();
+        heartbeatInterval = setInterval(() => sendHeartbeat(), HEARTBEAT_INTERVAL);
+        onlinePollInterval = setInterval(() => fetchOnlineCount(), ONLINE_POLL_INTERVAL);
+        fetchOnlineCount();
+    }
+    
+    function stopOnlineMonitoring() {
+        if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
+        if (onlinePollInterval) { clearInterval(onlinePollInterval); onlinePollInterval = null; }
+    }
+    
+    async function checkIn(userName) { 
+        if (!sessionId) sessionId = generateSessionId();
+        try {
+            const payload = new URLSearchParams();
+            payload.append("action", "checkIn"); 
+            payload.append("userName", userName); 
+            payload.append("sessionId", sessionId);
+            const response = await fetch(WEB_APP_URL, { method: "POST", body: payload });
+            const result = await response.json();
+            if (result.success === false && result.alreadyLoggedIn) {
+                showToast(result.error, "error");
+                return false;
+            }
+            return true;
+        } catch (err) { return true; }
+    }
+    
+    async function getMyUpdates(userName) { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); 
+            const data = await res.json(); 
+            const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; 
+        } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } 
+    }
+    
+    async function getAllUsersPerformance() { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); 
+            const data = await res.json(); 
+            const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; 
+        } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } 
+    }
+    
+    async function getMyTodayKycCount(userName) { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); 
+            const data = await res.json(); 
+            const s = document.getElementById("myTodayKycValue"); 
+            if(s) {
+                const count = data.success ? data.count : 0;
+                s.innerText = count;
+                if(count > 0) { s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)"; s.style.color = "white"; }
+                else { s.style.background = "white"; s.style.color = "#ec4899"; }
+            }
+            return data;
+        } catch(e) { const s = document.getElementById("myTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } 
+    }
+    
+    async function getTodayKycCount() { 
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); 
+            const data = await res.json(); 
+            const s = document.getElementById("totalTodayKycValue"); 
+            if(s) {
+                const count = data.success ? data.count : 0;
+                s.innerText = count;
+                if(count > 0) { s.style.background = "linear-gradient(135deg, #10b981, #059669)"; s.style.color = "white"; }
+                else { s.style.background = "white"; s.style.color = "#ec4899"; }
+            }
+            return data;
+        } catch(e) { const s = document.getElementById("totalTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } 
+    }
+    
+    async function handleLogin(u, p) { 
+        const btn = document.getElementById("loginBtn"); 
+        btn.disabled = true; btn.textContent = "Logging in...";
+        try { 
+            const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); 
+            const data = await res.json(); 
+            if(data.success) { 
+                showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); 
+                currentUser = { userName: data.userName || u, fullName: data.fullName || u }; 
+                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); 
+                sessionId = generateSessionId();
+                const checkInResult = await checkIn(currentUser.userName);
+                if (checkInResult === false) {
+                    btn.disabled = false; btn.textContent = "Sign In";
+                    return;
+                }
+                renderMainApp(); 
+            } else { 
+                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">${data.error || "Invalid credentials"}</div>`; 
+            } 
+        } catch(e) { 
+            document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">Connection error</div>`; 
+        } finally { 
+            btn.disabled = false; btn.textContent = "Sign In";
+        } 
+    }
+    
+    function renderAuthPage() { 
+        document.getElementById("app").innerHTML = `
+            <div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div>
+            <div style="text-align:center;font-size:0.65rem;color:#64748b;margin-bottom:24px;">MGNREGA</div>
+            <div id="authError"></div>
+            <div style="margin-bottom:14px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
+            <div style="margin-bottom:14px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
+            <button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button>
+            <div style="text-align:center;margin-top:16px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Create Account</span></div></div>
+        `;
+        document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); };
+        document.getElementById("showSignup").onclick = () => renderSignupPage();
+    }
+    
+    function renderSignupPage() {
+        document.getElementById("app").innerHTML = `
+            <div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div>
+            <div id="authError"></div>
+            <div style="margin-bottom:14px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
+            <div style="margin-bottom:14px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
+            <div style="margin-bottom:14px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
+            <button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button>
+            <div style="text-align:center;margin-top:16px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Back to Login</span></div></div>
+        `;
+        document.getElementById("signupBtn").onclick = async () => {
+            const n = document.getElementById("signupName").value.trim();
+            const u = document.getElementById("signupUsername").value.trim();
+            const p = document.getElementById("signupPassword").value.trim();
+            if(!n || !u || !p) { showToast("All fields required", "error"); return; }
+            try {
+                const params = new URLSearchParams();
+                params.append("action", "register");
+                params.append("fullName", n);
+                params.append("username", u);
+                params.append("password", p);
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: params });
+                const data = await res.json();
+                if(data.success) {
+                    showToast("Registered! Wait for admin approval.", "success");
+                    setTimeout(() => renderAuthPage(), 2000);
+                } else {
+                    document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">${data.error}</div>`;
+                }
+            } catch(e) {
+                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">Network error</div>`;
+            }
+        };
+        document.getElementById("showLogin").onclick = () => renderAuthPage();
+    }
     
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
-            <div class="user-header"><div><span style="font-weight:800;">👋 ${escapeHtml(currentUser.fullName)}</span><span style="font-size:0.6rem;color:#8b5cf6;margin-left:8px;">Surveyor</span></div>
-            <div class="user-stats"><div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div>
-            <div class="divider"></div><div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyUpdates(window.currentUser.userName)">⟳</button></div>
-            <div class="divider"></div><div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="window.getAllUsersPerformance()">⟳</button></div>
-            <div class="divider"></div><div class="stat-item"><span class="stat-label">📅 Today's My KYC:</span><span class="stat-value my-today-kyc" id="myTodayKycValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyTodayKycCount(window.currentUser.userName)">⟳</button></div>
-            <div class="divider"></div><div class="stat-item"><span class="stat-label">📅 Today's Total KYC:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div></div>
+            <div class="user-header"><div><span style="font-weight:700;font-size:0.85rem;">👋 ${escapeHtml(currentUser.fullName)}</span><span style="font-size:0.55rem;color:#8b5cf6;margin-left:6px;">Surveyor</span></div>
+            <div class="user-stats">
+                <div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div>
+                <div class="divider"></div>
+                <div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyUpdates(window.currentUser.userName)">⟳</button></div>
+                <div class="divider"></div>
+                <div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="window.getAllUsersPerformance()">⟳</button></div>
+                <div class="divider"></div>
+                <div class="stat-item"><span class="stat-label">📅 My KYC Today:</span><span class="stat-value my-today-kyc" id="myTodayKycValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyTodayKycCount(window.currentUser.userName)">⟳</button></div>
+                <div class="divider"></div>
+                <div class="stat-item"><span class="stat-label">📅 Total KYC Today:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div>
+            </div>
             <button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div style="background:white;border-radius:28px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-                <div><h1 style="font-size:1.4rem;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📋 KYC Portal</h1><div id="syncStatus" style="background:linear-gradient(135deg,#10b98120,#05966920);display:inline-block;padding:3px 10px;border-radius:40px;font-size:0.6rem;">📦 Ready</div></div>
-                <div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div style="font-size:0.5rem;text-align:center;">Loading...</div></div>
+            <div style="background:white;border-radius:28px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div><h1 style="font-size:1.2rem;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📋 KYC Portal</h1></div>
+                <div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div style="font-size:0.45rem;text-align:center;">Loading...</div></div>
             </div>
             <div class="queue-bar" id="queueBar" style="display:none;"><div><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
-            <div class="sync-container"><div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync Sheet</button></div>
+            <div class="sync-container"><div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync</button></div>
             <div id="syncProgressContainer" class="sync-progress-container" style="display:none;"><div class="sync-progress-bar-bg"><div id="syncProgressFill" class="sync-progress-fill"></div></div><div id="syncProgressText" class="sync-progress-text">Syncing...</div></div>
             <div class="filter-section"><div class="filter-title">🔍 Find Pending Record</div><div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search</button></div>
             <div id="filterSelects"><div class="filter-row"><div class="filter-label"><span>🏛️ Sansad</span><span class="filter-count" id="sansadCount">0</span></div><select id="filterSansad" class="filter-select"><option>Loading...</option></select></div>
@@ -400,15 +613,18 @@
             <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
             <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div></div>
             <div id="cardContainer"><div class="waiting-card">Click Sync to load data</div></div>
-            <div class="footer-note">✅ Mandatory remark selection + confirmation required before update. Today's counts reflect only "KYC DONE" updates.</div>
+            <div class="footer-note">✅ Online: Users active in last 3 min | Heartbeat every 45 sec</div>
         `;
+        
         window.currentUser = currentUser;
         window.getMyUpdates = getMyUpdates;
         window.getAllUsersPerformance = getAllUsersPerformance;
         window.getMyTodayKycCount = getMyTodayKycCount;
         window.getTodayKycCount = getTodayKycCount;
+        
         loadQueue(); 
-        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; updateBarChart(); renderCurrentView(); }
+        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; updateBarChart(); renderCurrentView(); }
+        
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
         document.getElementById("uploadAllBtn").onclick = uploadAllFromQueue;
@@ -419,13 +635,25 @@
         document.getElementById("modeFilterBtn").onclick = () => { currentMode = "filter"; toggleModeUI(); };
         document.getElementById("modeSearchBtn").onclick = () => { currentMode = "search"; toggleModeUI(); };
         const si = document.getElementById("globalSearchInput"); if(si) si.addEventListener("input", () => { searchQuery = si.value; performSearchAndRender(); });
-        document.getElementById("logoutBtn").onclick = () => { localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
+        document.getElementById("logoutBtn").onclick = () => { stopOnlineMonitoring(); localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
+        
+        startOnlineMonitoring();
+        
         setTimeout(() => syncData(true), 500);
         getMyUpdates(currentUser.userName); getAllUsersPerformance(); getMyTodayKycCount(currentUser.userName); getTodayKycCount();
-        fetch(`${WEB_APP_URL}?action=getOnlineCount`).then(res => res.json()).then(data => { if(data.success) document.getElementById("onlineCountValue").innerText = data.count; }).catch(() => {});
     }
     
-    function init() { const savedUser = localStorage.getItem(SESSION_KEY); if(savedUser) { try { currentUser = JSON.parse(savedUser); window.currentUser = currentUser; renderMainApp(); checkIn(currentUser.userName); } catch(e) { renderAuthPage(); } } else { renderAuthPage(); } }
+    function init() { 
+        const savedUser = localStorage.getItem(SESSION_KEY); 
+        if(savedUser) { 
+            try { 
+                currentUser = JSON.parse(savedUser); 
+                window.currentUser = currentUser;
+                renderMainApp(); 
+                checkIn(currentUser.userName); 
+            } catch(e) { renderAuthPage(); } 
+        } else { renderAuthPage(); } 
+    }
     init();
 </script>
 </body>
