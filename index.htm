@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Dual KYC Counters</title>
+    <title>KYC Portal - Dual KYC Counters | Mandatory Remark & Confirmation</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; }
@@ -47,15 +47,17 @@
         .field-value-small { font-size: 0.85rem; font-weight: 600; color: #0f172a; }
         .reason-value { background: #fef3c7; display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; }
         .guardian-info { background: #f0fdf4; padding: 8px 12px; border-radius: 12px; border-left: 3px solid #22c55e; }
-        .remark-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1.5px solid #e2e8f0; border-radius: 16px; margin: 12px 0; }
+        .remark-select { width: 100%; padding: 12px 14px; font-size: 0.85rem; border: 1.5px solid #e2e8f0; border-radius: 16px; margin: 12px 0; cursor: pointer; }
         .action-buttons { display: flex; gap: 12px; margin-top: 12px; }
-        .update-now-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; }
+        .update-now-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; cursor: pointer; transition: transform 0.1s; }
+        .update-now-btn:active { transform: scale(0.97); }
         .save-queue-btn { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; background: #f59e0b; color: white; border: none; cursor: pointer; }
         .completed-hint { background: #e2e8f0; padding: 10px; border-radius: 16px; font-size: 0.7rem; text-align: center; margin-top: 12px; }
         .queue-bar { background: white; border-radius: 24px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .queue-badge { padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 700; background: #ef4444; color: white; }
         .upload-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 8px 18px; border-radius: 40px; color: white; cursor: pointer; margin-left: 8px; }
-        .result-item { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; }
+        .result-item { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; transition: background 0.1s; }
+        .result-item:active { background: #f1f5f9; }
         .result-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
         .result-name { font-weight: 700; font-size: 0.8rem; }
         .refresh-icon { background: none; border: none; font-size: 0.7rem; cursor: pointer; padding: 2px 6px; border-radius: 20px; }
@@ -77,6 +79,18 @@
         .chart-legend { font-size: 0.5rem; color: #94a3b8; text-align: center; margin-top: 5px; }
         .online-dot-small { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
+        /* Custom Confirmation Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; backdrop-filter: blur(4px); }
+        .confirmation-modal { background: white; border-radius: 32px; max-width: 340px; width: 85%; padding: 24px 20px; text-align: center; animation: fadeInUp 0.2s ease; box-shadow: 0 25px 40px rgba(0,0,0,0.3); }
+        .confirmation-modal h3 { font-size: 1.3rem; margin-bottom: 12px; color: #1e293b; }
+        .confirmation-modal p { font-size: 0.85rem; color: #475569; margin-bottom: 16px; line-height: 1.4; }
+        .confirmation-modal .remark-preview { background: #fef3c7; padding: 10px 14px; border-radius: 28px; font-weight: 700; margin: 12px 0; font-size: 0.85rem; color: #92400e; word-break: break-word; border-left: 3px solid #f59e0b; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; padding: 12px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; transition: opacity 0.1s; }
+        .confirm-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .cancel-btn { background: #e2e8f0; color: #475569; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .remark-select.error-border { border-color: #ef4444; background-color: #fef2f2; }
     </style>
 </head>
 <body>
@@ -84,10 +98,8 @@
 
 <script>
     // ==================== CONFIGURATION ====================
-    // !!! IMPORTANT: Replace this with your actual Google Apps Script URL !!!
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_rDeNCe_h2tBhcrEX3WYXnMXy9KsUBJsTAOGBMi-fXCE7rr1Iv5chKcnpLw0-j0K0Ew/exec";
     
-    // Column indices (0-indexed from GS response)
     const COL_SANSAD = 3;
     const COL_JOB_CARD = 4;
     const COL_APPLICANT_NAME = 6;
@@ -97,20 +109,8 @@
     
     const DROPDOWN_OPTIONS = ["KYC DONE", "Biometric update required", "Migrant worker", "Aadhar name mismatch with Job Card", "Gender mismatch", "Death of worker", "Not included in SIR", "Unwilling to work (Consent required)", "Face Authentication : Failed (Error Code - K-100)", "Shifted worker", "Aadhar Authentication Failed"];
     
-    // Beautiful gradient colors for bars
     const BAR_GRADIENTS = [
-        { top: "#f59e0b", bottom: "#d97706" },  // Amber
-        { top: "#10b981", bottom: "#059669" },  // Emerald
-        { top: "#3b82f6", bottom: "#1d4ed8" },  // Blue
-        { top: "#ef4444", bottom: "#dc2626" },  // Red
-        { top: "#8b5cf6", bottom: "#7c3aed" },  // Purple
-        { top: "#ec4899", bottom: "#db2777" },  // Pink
-        { top: "#06b6d4", bottom: "#0891b2" },  // Cyan
-        { top: "#84cc16", bottom: "#65a30d" },  // Lime
-        { top: "#f97316", bottom: "#ea580c" },  // Orange
-        { top: "#14b8a6", bottom: "#0f766e" },  // Teal
-        { top: "#a855f7", bottom: "#9333ea" },  // Violet
-        { top: "#f43f5e", bottom: "#e11d48" }   // Rose
+        { top: "#f59e0b", bottom: "#d97706" }, { top: "#10b981", bottom: "#059669" }, { top: "#3b82f6", bottom: "#1d4ed8" }, { top: "#ef4444", bottom: "#dc2626" }, { top: "#8b5cf6", bottom: "#7c3aed" }, { top: "#ec4899", bottom: "#db2777" }, { top: "#06b6d4", bottom: "#0891b2" }, { top: "#84cc16", bottom: "#65a30f" }, { top: "#f97316", bottom: "#ea580c" }, { top: "#14b8a6", bottom: "#0f766e" }, { top: "#a855f7", bottom: "#9333ea" }, { top: "#f43f5e", bottom: "#e11d48" }
     ];
     
     let sessionId = null;
@@ -142,6 +142,35 @@
         setTimeout(() => t.remove(), 2600); 
     }
     
+    // ========== CONFIRMATION MODAL (Mandatory before update) ==========
+    function showConfirmationModal(remark, applicantName, onConfirm, onCancel) {
+        const existingModal = document.querySelector(".modal-overlay");
+        if (existingModal) existingModal.remove();
+        
+        const modalDiv = document.createElement("div");
+        modalDiv.className = "modal-overlay";
+        modalDiv.innerHTML = `
+            <div class="confirmation-modal">
+                <h3>⚠️ Confirm KYC Update</h3>
+                <p>You are about to update record for <strong>${escapeHtml(applicantName)}</strong></p>
+                <div class="remark-preview">📌 ${escapeHtml(remark)}</div>
+                <p style="font-size:0.75rem;">This action cannot be undone. The record will be marked as completed.</p>
+                <div class="modal-buttons">
+                    <button class="confirm-btn" id="confirmUpdateBtn">✅ Yes, Update</button>
+                    <button class="cancel-btn" id="cancelUpdateBtn">❌ Cancel</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        
+        const confirmBtn = modalDiv.querySelector("#confirmUpdateBtn");
+        const cancelBtn = modalDiv.querySelector("#cancelUpdateBtn");
+        
+        const cleanup = () => { if (modalDiv && modalDiv.remove) modalDiv.remove(); };
+        confirmBtn.onclick = () => { cleanup(); if (onConfirm) onConfirm(); };
+        cancelBtn.onclick = () => { cleanup(); if (onCancel) onCancel(); };
+    }
+    
     function showProgress(c, t, m) { 
         let o = document.querySelector(".progress-overlay"); 
         if(o) o.remove(); 
@@ -167,7 +196,6 @@
     
     function getActiveRecords() { return allRecords.filter(r => !r.currentRemark || r.currentRemark.trim() === ""); }
     function getCompletedRecords() { return allRecords.filter(r => r.currentRemark && r.currentRemark.trim() !== ""); }
-    
     function getUniqueSansadCount() { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") s.add(r.sansad); }); return s.size; }
     function getUniqueJobCardCount(sansad) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") s.add(r.jobCard); }); return s.size; }
     function getUniqueApplicantCount(sansad, jobCard) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") s.add(r.applicantName); }); return s.size; }
@@ -189,57 +217,31 @@
         let slashMatch = upper.match(/\/([IVXLCDM]+)$/);
         if (slashMatch) return slashMatch[1];
         let numMatch = upper.match(/(\d+)$/);
-        if (numMatch) { const num = parseInt(numMatch[1]); const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]; return romanNumerals[num] || num.toString(); }
+        if (numMatch) { const num = parseInt(numMatch[0]); const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]; return romanNumerals[num] || num.toString(); }
         let romanMatch = upper.match(/\b([IVXLCDM]+)\b/);
         if (romanMatch && romanMatch[1].length <= 4) return romanMatch[1];
         return sansad.substring(0, 3);
     }
     
-    function getColorForSansad(index) {
-        const colors = BAR_GRADIENTS[index % BAR_GRADIENTS.length];
-        return `linear-gradient(180deg, ${colors.top}, ${colors.bottom})`;
-    }
+    function getColorForSansad(index) { const colors = BAR_GRADIENTS[index % BAR_GRADIENTS.length]; return `linear-gradient(180deg, ${colors.top}, ${colors.bottom})`; }
     
     function updateBarChart() {
         const counts = getVerificationCounts();
-        // Sort sansads by numeric order
         const sansads = Array.from(counts.keys()).sort((a, b) => {
-            const getNum = (s) => {
-                const match = s.match(/\d+$/);
-                if (match) return parseInt(match[0]);
-                const romanMatch = s.match(/\/([IVXLCDM]+)$/i);
-                if (romanMatch) {
-                    const roman = romanMatch[1].toUpperCase();
-                    const romanMap = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 };
-                    return romanMap[roman] || 999;
-                }
-                return 999;
-            };
+            const getNum = (s) => { const match = s.match(/\d+$/); if (match) return parseInt(match[0]); const romanMatch = s.match(/\/([IVXLCDM]+)$/i); if (romanMatch) { const roman = romanMatch[1].toUpperCase(); const romanMap = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 }; return romanMap[roman] || 999; } return 999; };
             return getNum(a) - getNum(b);
         });
-        
         const maxCount = Math.max(...Array.from(counts.values()), 1);
         const chartContainer = document.getElementById("barChartContainer");
         if(!chartContainer) return;
-        
-        if(sansads.length === 0) { 
-            chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No completed records yet</div>`;
-            return; 
-        }
-        
+        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No completed records yet</div>`; return; }
         let barsHtml = `<div class="chart-title">✓ KYC Completed</div><div class="chart-bars">`;
         sansads.forEach((sansad, idx) => {
             const count = counts.get(sansad) || 0;
             const height = Math.max(8, Math.min(45, (count / maxCount) * 45));
             const romanLabel = toRomanLabel(sansad);
             const gradient = getColorForSansad(idx);
-            barsHtml += `
-                <div class="chart-bar-item">
-                    <div class="bar-value-top">${count}</div>
-                    <div class="bar" style="height: ${height}px; background: ${gradient};"></div>
-                    <div class="bar-label">${romanLabel}</div>
-                </div>
-            `;
+            barsHtml += `<div class="chart-bar-item"><div class="bar-value-top">${count}</div><div class="bar" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label">${romanLabel}</div></div>`;
         });
         barsHtml += `</div><div class="chart-legend">Verification count</div>`;
         chartContainer.innerHTML = barsHtml;
@@ -271,423 +273,109 @@
     }
     
     function updateJobCardDropdown() { 
-        if(!selectedSansad) { 
-            const jobSel = document.getElementById("filterJobCard"); 
-            if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } 
-            updateFilterDisplays(); return; 
-        } 
+        if(!selectedSansad) { const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } updateFilterDisplays(); return; } 
         const vals = getUniqueJobCardValues(selectedSansad); 
         const jobSel = document.getElementById("filterJobCard"); 
         if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } 
         selectedJobCard = ""; selectedApplicant = ""; 
-        const appSel = document.getElementById("filterApplicant"); 
-        if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
+        const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
         filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
     }
     
     function updateApplicantDropdown() { 
-        if(!selectedSansad || !selectedJobCard) { 
-            const appSel = document.getElementById("filterApplicant"); 
-            if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
-            updateFilterDisplays(); return; 
-        } 
+        if(!selectedSansad || !selectedJobCard) { const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } updateFilterDisplays(); return; } 
         const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); 
         const appSel = document.getElementById("filterApplicant"); 
         if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } 
         selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
     }
     
-    function resetFilters() { 
-        selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; 
-        const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; 
-        updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; 
-        const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; 
-        currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); 
-    }
+    function resetFilters() { selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); }
     
-    function toggleModeUI() { 
-        const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); 
-        if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } 
-        const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); 
-        if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } 
-        if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); 
-        else if(currentMode === "filter") renderCurrentView(); 
-        else renderWaiting(); 
-    }
+    function toggleModeUI() { const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); else if(currentMode === "filter") renderCurrentView(); else renderWaiting(); }
     
     function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
     function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
     
-    function performSearchAndRender() { 
-        const inp = document.getElementById("globalSearchInput"); 
-        if(!inp) return; 
-        searchQuery = inp.value; 
-        if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } 
-        const results = searchRecords(searchQuery); 
-        if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } 
-        else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } 
-        else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } 
-    }
+    function performSearchAndRender() { const inp = document.getElementById("globalSearchInput"); if(!inp) return; searchQuery = inp.value; if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } const results = searchRecords(searchQuery); if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } }
     
-    function renderCompactResultList(records) { 
-        const container = document.getElementById("cardContainer"); 
-        if(!container) return; 
-        let html = `<div style="font-size:0.7rem;text-align:center;margin-bottom:10px;">📋 ${records.length} results · tap to update</div>`; 
-        records.forEach(rec => { 
-            html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.65rem;background:#f1f5f9;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.65rem;background:#ede9fe;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.55rem;">→</span></div></div>`; 
-        }); 
-        container.innerHTML = html; 
-        records.forEach(rec => { 
-            const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); 
-            if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; 
-        }); 
-    }
+    function renderCompactResultList(records) { const container = document.getElementById("cardContainer"); if(!container) return; let html = `<div style="font-size:0.7rem;text-align:center;margin-bottom:10px;">📋 ${records.length} results · tap to update</div>`; records.forEach(rec => { html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.65rem;background:#f1f5f9;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.65rem;background:#ede9fe;padding:3px 8px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.55rem;">→</span></div></div>`; }); container.innerHTML = html; records.forEach(rec => { const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; }); }
     
     function renderWaitingWithMessage(msg) { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">${msg}</div>`; }
-    function renderWaiting() { 
-        const c = document.getElementById("cardContainer"); 
-        if(!c) return; 
-        const ac = getActiveRecords().length; 
-        const uniqueSansadCount = getUniqueSansadCount(); 
-        if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; 
-        else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; 
-        else if(currentMode === "filter") { 
-            if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; 
-            else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending)</span></div>`; 
-        } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; 
-    }
-    function renderCurrentView() { 
-        if(currentMode === "filter") { 
-            if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } 
-            else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } 
-        } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } 
-    }
+    function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.65rem;">(${uniqueSansadCount} Sansads with pending)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; }
+    function renderCurrentView() { if(currentMode === "filter") { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } }
     function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found</div>`; }
     
-    async function directUpdate(rec, rm) { 
-        if(!rm) { showToast("⚠️ Select a remark", "error"); return false; } 
-        showProgress(1,1,"Updating..."); 
-        try { 
-            const p = new URLSearchParams(); 
-            p.append("action", "updateRemarks"); 
-            p.append("sheetRow", rec.sheetRow); 
-            p.append("newRemarks", rm); 
-            p.append("userName", currentUser.userName); 
-            const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); 
-            const result = await res.json(); 
-            if(result.success) { 
-                rec.currentRemark = rm; 
-                hideProgress(); 
-                showToast("✅ Updated!", "success"); 
-                filteredRecord = null; 
-                resetFilters(); 
-                await getMyUpdates(currentUser.userName); 
-                await getAllUsersPerformance(); 
-                await getMyTodayKycCount(currentUser.userName);
-                await getTodayKycCount();
-                updateFilterDisplays(); 
-                updateBarChart(); 
-                return true; 
-            } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } 
-        } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } 
+    // ========== UPDATE WITH MANDATORY REMARK + CONFIRMATION ==========
+    async function directUpdateWithConfirmation(rec, rm) { 
+        if(!rm || rm.trim() === "") { 
+            showToast("⚠️ Remark is mandatory! Please select an option before updating.", "error");
+            // highlight dropdown
+            const sel = document.getElementById("remarkSelect");
+            if(sel) { sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); }
+            return false; 
+        }
+        // Show confirmation modal first
+        showConfirmationModal(rm, rec.applicantName, async () => {
+            showProgress(1,1,"Updating KYC record..."); 
+            try { 
+                const p = new URLSearchParams(); 
+                p.append("action", "updateRemarks"); 
+                p.append("sheetRow", rec.sheetRow); 
+                p.append("newRemarks", rm); 
+                p.append("userName", currentUser.userName); 
+                const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); 
+                const result = await res.json(); 
+                if(result.success) { 
+                    rec.currentRemark = rm; 
+                    hideProgress(); 
+                    showToast("✅ KYC Updated Successfully!", "success"); 
+                    filteredRecord = null; 
+                    resetFilters(); 
+                    await getMyUpdates(currentUser.userName); 
+                    await getAllUsersPerformance(); 
+                    await getMyTodayKycCount(currentUser.userName);
+                    await getTodayKycCount();
+                    updateFilterDisplays(); 
+                    updateBarChart(); 
+                    renderCurrentView();
+                    return true; 
+                } else { hideProgress(); showToast(`❌ Failed: ${result?.error || "Unknown error"}`, "error"); return false; } 
+            } catch(e) { hideProgress(); showToast(`❌ Network error: ${e.message}`, "error"); return false; } 
+        }, () => { showToast("Update cancelled", "warning"); });
+        return false;
     }
     
     function renderSingleRecord(rec) { 
         if(!rec) { renderCurrentView(); return; } 
-        let opts = `<option value="">-- Select remark --</option>`; 
+        let opts = `<option value="">-- Select remark (required) --</option>`; 
         DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); 
         let guardianHtml = "";
         if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "") {
             guardianHtml = `<div class="field-item field-item-full"><div class="field-label-small">👨‍👩‍👧 GUARDIAN</div><div class="field-value-small guardian-info">${escapeHtml(rec.guardian)}</div></div>`;
         }
-        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden.</div></div>`; 
+        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">⚠️ Remark must be selected. Confirmation popup will appear before update.</div></div>`; 
         const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; 
         const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); 
-        if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } await directUpdate(rec, v); }; 
-        if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("Select remark","error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; 
+        if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("❌ Mandatory: Please select a remark first!", "error"); sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); return; } await directUpdateWithConfirmation(rec, v); }; 
+        if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("❌ Cannot save to queue without a remark", "error"); sel.classList.add("error-border"); setTimeout(() => sel.classList.remove("error-border"), 1000); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; showToast("Saved to queue", "success"); } }; 
     }
     
-    async function uploadSingleFromQueue() { 
-        if(pendingQueue.length === 0) return; 
-        const item = pendingQueue[0]; 
-        showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); 
-        try { 
-            const p = new URLSearchParams(); 
-            p.append("action", "updateRemarks"); 
-            p.append("sheetRow", item.sheetRow); 
-            p.append("newRemarks", item.newRemarks); 
-            p.append("userName", currentUser.userName); 
-            const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); 
-            const result = await res.json(); 
-            if(result.success) { 
-                pendingQueue.shift(); saveQueue(); 
-                const cached = allRecords.find(r => r.sheetRow === item.sheetRow); 
-                if(cached) cached.currentRemark = item.newRemarks; 
-                if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } 
-                showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); 
-                await getMyUpdates(currentUser.userName); 
-                await getAllUsersPerformance(); 
-                await getMyTodayKycCount(currentUser.userName);
-                await getTodayKycCount();
-                updateBarChart(); 
-            } else { showToast(`❌ Failed`, "error"); } 
-        } catch(e) { showToast("Error", "error"); } 
-        hideProgress(); 
-    }
+    async function uploadSingleFromQueue() { if(pendingQueue.length === 0) return; const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); } else { showToast(`❌ Failed`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
+    async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); hideProgress(); if(filteredRecord) { filteredRecord = null; resetFilters(); } showToast(`✅ Batch complete!`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); }
     
-    async function uploadAllFromQueue() { 
-        if(pendingQueue.length === 0) return; 
-        const total = pendingQueue.length; 
-        for(let i=0; i<pendingQueue.length; i++) { 
-            const item = pendingQueue[i]; 
-            showProgress(i+1, total, `Uploading ${item.applicantName}`); 
-            try { 
-                const p = new URLSearchParams(); 
-                p.append("action", "updateRemarks"); 
-                p.append("sheetRow", item.sheetRow); 
-                p.append("newRemarks", item.newRemarks); 
-                p.append("userName", currentUser.userName); 
-                await fetch(WEB_APP_URL, { method: "POST", body: p }); 
-                const cached = allRecords.find(r => r.sheetRow === item.sheetRow); 
-                if(cached) cached.currentRemark = item.newRemarks; 
-                await new Promise(r => setTimeout(r, 200)); 
-            } catch(e) {} 
-        } 
-        pendingQueue = []; saveQueue(); hideProgress(); 
-        if(filteredRecord) { filteredRecord = null; resetFilters(); } 
-        showToast(`✅ Batch complete!`, "success"); 
-        await getMyUpdates(currentUser.userName); 
-        await getAllUsersPerformance(); 
-        await getMyTodayKycCount(currentUser.userName);
-        await getTodayKycCount();
-        updateBarChart(); 
-    }
+    async function syncData(isAuto = false) { if(isAutoSyncing) return; isAutoSyncing = true; const syncBtn = document.getElementById("syncBtn"); const progressContainer = document.getElementById("syncProgressContainer"); const progressFill = document.getElementById("syncProgressFill"); const progressText = document.getElementById("syncProgressText"); if(!isAuto && syncBtn) syncBtn.disabled = true; if(progressContainer) progressContainer.style.display = "block"; if(progressFill) progressFill.style.width = "0%"; if(progressText) progressText.innerText = "Connecting..."; const container = document.getElementById("cardContainer"); if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; try { if(progressFill) progressFill.style.width = "30%"; if(progressText) progressText.innerText = "Fetching data..."; const res = await fetch(WEB_APP_URL + "?action=getData"); if(!res.ok) throw new Error(`HTTP ${res.status}`); const raw = await res.json(); if(progressFill) progressFill.style.width = "70%"; if(progressText) progressText.innerText = "Processing..."; allRecords = raw.map((row, i) => ({ sheetRow: i+2, sansad: row[COL_SANSAD] || "—", jobCard: row[COL_JOB_CARD] || "—", applicantName: row[COL_APPLICANT_NAME] || "—", guardian: row[COL_GUARDIAN] || "—", reason: row[COL_REASON] || "—", currentRemark: row[COL_NEW_REMARKS] || "" })); if(progressFill) progressFill.style.width = "100%"; if(progressText) progressText.innerText = "Complete!"; setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 1000); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; updateFilterDisplays(); updateBarChart(); populateSansadDropdown(); resetFilters(); if(!isAuto) showToast(`📥 Synced! ${ac} pending rows`, "success"); if(currentUser) { await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); } } catch(e) { console.error("Sync error:", e); if(progressText) progressText.innerText = "Failed: " + e.message; if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed: ${e.message}<br><br>Make sure URL is correct</div>`; if(!isAuto) showToast("❌ Sync failed", "error"); } finally { isAutoSyncing = false; if(!isAuto && syncBtn) syncBtn.disabled = false; } }
     
-    async function syncData(isAuto = false) { 
-        if(isAutoSyncing) return; 
-        isAutoSyncing = true; 
-        const syncBtn = document.getElementById("syncBtn");
-        const progressContainer = document.getElementById("syncProgressContainer");
-        const progressFill = document.getElementById("syncProgressFill");
-        const progressText = document.getElementById("syncProgressText");
-        
-        if(!isAuto && syncBtn) syncBtn.disabled = true; 
-        if(progressContainer) progressContainer.style.display = "block";
-        if(progressFill) progressFill.style.width = "0%";
-        if(progressText) progressText.innerText = "Connecting...";
-        
-        const container = document.getElementById("cardContainer"); 
-        if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; 
-        
-        try { 
-            if(progressFill) progressFill.style.width = "30%";
-            if(progressText) progressText.innerText = "Fetching data...";
-            
-            const res = await fetch(WEB_APP_URL + "?action=getData"); 
-            if(!res.ok) throw new Error(`HTTP ${res.status}`);
-            
-            const raw = await res.json(); 
-            console.log("Data received:", raw.length, "rows");
-            
-            if(progressFill) progressFill.style.width = "70%";
-            if(progressText) progressText.innerText = "Processing...";
-            
-            allRecords = raw.map((row, i) => ({ 
-                sheetRow: i+2, 
-                sansad: row[COL_SANSAD] || "—", 
-                jobCard: row[COL_JOB_CARD] || "—", 
-                applicantName: row[COL_APPLICANT_NAME] || "—",
-                guardian: row[COL_GUARDIAN] || "—",
-                reason: row[COL_REASON] || "—", 
-                currentRemark: row[COL_NEW_REMARKS] || "" 
-            })); 
-            
-            if(progressFill) progressFill.style.width = "100%";
-            if(progressText) progressText.innerText = "Complete!";
-            setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 1000);
-            
-            const ac = getActiveRecords().length; 
-            const uniqueSansadCount = getUniqueSansadCount(); 
-            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; 
-            if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleString()}`; 
-            
-            updateFilterDisplays(); 
-            updateBarChart(); 
-            populateSansadDropdown();
-            resetFilters(); 
-            if(!isAuto) showToast(`📥 Synced! ${ac} pending rows`, "success"); 
-            if(currentUser) { 
-                await getMyUpdates(currentUser.userName); 
-                await getAllUsersPerformance();
-                await getMyTodayKycCount(currentUser.userName);
-                await getTodayKycCount();
-            } 
-        } catch(e) { 
-            console.error("Sync error:", e);
-            if(progressText) progressText.innerText = "Failed: " + e.message;
-            if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed: ${e.message}<br><br>Make sure URL is correct and GS is deployed</div>`;
-            if(!isAuto) showToast("❌ Sync failed", "error"); 
-        } finally { 
-            isAutoSyncing = false; 
-            if(!isAuto && syncBtn) syncBtn.disabled = false; 
-        } 
-    }
+    async function checkIn(userName) { if (!sessionId) sessionId = generateSessionId(); try { const payload = new URLSearchParams(); payload.append("action", "checkIn"); payload.append("userName", userName); payload.append("sessionId", sessionId); await fetch(WEB_APP_URL, { method: "POST", body: payload }); return true; } catch (err) { return true; } }
+    async function getMyUpdates(userName) { try { const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); const data = await res.json(); const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } }
+    async function getAllUsersPerformance() { try { const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); const data = await res.json(); const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } }
+    async function getMyTodayKycCount(userName) { try { const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); const data = await res.json(); const s = document.getElementById("myTodayKycValue"); if(s) { const count = data.success ? data.count : 0; s.innerText = count; if(count > 0) { s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)"; s.style.color = "white"; } else { s.style.background = "white"; s.style.color = "#ec4899"; } } return data; } catch(e) { const s = document.getElementById("myTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } }
+    async function getTodayKycCount() { try { const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); const data = await res.json(); const s = document.getElementById("totalTodayKycValue"); if(s) { const count = data.success ? data.count : 0; s.innerText = count; if(count > 0) { s.style.background = "linear-gradient(135deg, #10b981, #059669)"; s.style.color = "white"; } else { s.style.background = "white"; s.style.color = "#ec4899"; } } return data; } catch(e) { const s = document.getElementById("totalTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } }
     
-    // ==================== API CALLS ====================
-    async function checkIn(userName) {
-        if (!sessionId) sessionId = generateSessionId();
-        try {
-            const payload = new URLSearchParams();
-            payload.append("action", "checkIn"); payload.append("userName", userName); payload.append("sessionId", sessionId);
-            await fetch(WEB_APP_URL, { method: "POST", body: payload });
-            return true;
-        } catch (err) { return true; }
-    }
-    
-    async function getMyUpdates(userName) { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); 
-            const data = await res.json(); 
-            const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; 
-        } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } 
-    }
-    
-    async function getAllUsersPerformance() { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); 
-            const data = await res.json(); 
-            const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; 
-        } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } 
-    }
-    
-    // Get today's MY KYC count (current user only)
-    async function getMyTodayKycCount(userName) { 
-        try { 
-            console.log("Fetching today's MY KYC for:", userName);
-            const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); 
-            const data = await res.json(); 
-            console.log("My Today's KYC response:", data);
-            const s = document.getElementById("myTodayKycValue"); 
-            if(s) {
-                const count = data.success ? data.count : 0;
-                s.innerText = count;
-                if(count > 0) {
-                    s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)";
-                    s.style.color = "white";
-                } else {
-                    s.style.background = "white";
-                    s.style.color = "#ec4899";
-                }
-            }
-            return data;
-        } catch(e) { 
-            console.error("My Today's KYC error:", e);
-            const s = document.getElementById("myTodayKycValue"); 
-            if(s) s.innerText = "0"; 
-            return { success: false, count: 0 };
-        } 
-    }
-    
-    // Get today's TOTAL KYC count (all users)
-    async function getTodayKycCount() { 
-        try { 
-            console.log("Fetching today's TOTAL KYC DONE count (ALL USERS)...");
-            const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); 
-            const data = await res.json(); 
-            console.log("Total Today's KYC response:", data);
-            const s = document.getElementById("totalTodayKycValue"); 
-            if(s) {
-                const count = data.success ? data.count : 0;
-                s.innerText = count;
-                if(count > 0) {
-                    s.style.background = "linear-gradient(135deg, #10b981, #059669)";
-                    s.style.color = "white";
-                } else {
-                    s.style.background = "white";
-                    s.style.color = "#ec4899";
-                }
-            }
-            return data;
-        } catch(e) { 
-            console.error("Total Today's KYC error:", e);
-            const s = document.getElementById("totalTodayKycValue"); 
-            if(s) s.innerText = "0"; 
-            return { success: false, count: 0 };
-        } 
-    }
-    
-    // ==================== AUTH ====================
-    async function handleLogin(u, p) { 
-        const btn = document.getElementById("loginBtn"); 
-        btn.disabled = true; btn.textContent = "Logging in...";
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); 
-            const data = await res.json(); 
-            if(data.success) { 
-                showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); 
-                currentUser = { userName: data.userName || u, fullName: data.fullName || u }; 
-                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); 
-                await checkIn(currentUser.userName); 
-                renderMainApp(); 
-            } else { 
-                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error || "Invalid credentials"}</div>`; 
-            } 
-        } catch(e) { 
-            document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Connection error: ${e.message}</div>`; 
-        } finally { 
-            btn.disabled = false; btn.textContent = "Sign In";
-        } 
-    }
-    
-    function renderAuthPage() { 
-        document.getElementById("app").innerHTML = `
-            <div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div>
-            <div style="text-align:center;font-size:0.7rem;color:#64748b;margin-bottom:28px;">MGNREGA</div>
-            <div id="authError"></div>
-            <div style="margin-bottom:18px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
-            <div style="margin-bottom:18px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
-            <button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button>
-            <div style="text-align:center;margin-top:20px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;">Create Account</span></div></div>
-        `;
-        document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); };
-        document.getElementById("showSignup").onclick = () => renderSignupPage();
-    }
-    
-    function renderSignupPage() {
-        document.getElementById("app").innerHTML = `
-            <div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div>
-            <div id="authError"></div>
-            <div style="margin-bottom:18px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
-            <div style="margin-bottom:18px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
-            <div style="margin-bottom:18px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div>
-            <button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button>
-            <div style="text-align:center;margin-top:20px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;">Back to Login</span></div></div>
-        `;
-        document.getElementById("signupBtn").onclick = async () => {
-            const n = document.getElementById("signupName").value.trim();
-            const u = document.getElementById("signupUsername").value.trim();
-            const p = document.getElementById("signupPassword").value.trim();
-            if(!n || !u || !p) { showToast("All fields required", "error"); return; }
-            try {
-                const params = new URLSearchParams();
-                params.append("action", "register");
-                params.append("fullName", n);
-                params.append("username", u);
-                params.append("password", p);
-                const res = await fetch(WEB_APP_URL, { method: "POST", body: params });
-                const data = await res.json();
-                if(data.success) {
-                    showToast("Registered! Please wait for admin approval.", "success");
-                    setTimeout(() => renderAuthPage(), 2000);
-                } else {
-                    document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error}</div>`;
-                }
-            } catch(e) {
-                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Network error</div>`;
-            }
-        };
-        document.getElementById("showLogin").onclick = () => renderAuthPage();
-    }
+    // Auth handlers (unchanged but essential)
+    async function handleLogin(u, p) { const btn = document.getElementById("loginBtn"); btn.disabled = true; btn.textContent = "Logging in..."; try { const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); const data = await res.json(); if(data.success) { showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); currentUser = { userName: data.userName || u, fullName: data.fullName || u }; localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); await checkIn(currentUser.userName); renderMainApp(); } else { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error || "Invalid credentials"}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Connection error: ${e.message}</div>`; } finally { btn.disabled = false; btn.textContent = "Sign In"; } }
+    function renderAuthPage() { document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div><div style="text-align:center;font-size:0.7rem;color:#64748b;margin-bottom:28px;">MGNREGA</div><div id="authError"></div><div style="margin-bottom:18px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button><div style="text-align:center;margin-top:20px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;">Create Account</span></div></div>`; document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); }; document.getElementById("showSignup").onclick = () => renderSignupPage(); }
+    function renderSignupPage() { document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.8rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div><div id="authError"></div><div style="margin-bottom:18px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><div style="margin-bottom:18px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:14px;border-radius:20px;border:1px solid #e2e8f0;"></div><button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:14px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button><div style="text-align:center;margin-top:20px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;">Back to Login</span></div></div>`; document.getElementById("signupBtn").onclick = async () => { const n = document.getElementById("signupName").value.trim(); const u = document.getElementById("signupUsername").value.trim(); const p = document.getElementById("signupPassword").value.trim(); if(!n || !u || !p) { showToast("All fields required", "error"); return; } try { const params = new URLSearchParams(); params.append("action", "register"); params.append("fullName", n); params.append("username", u); params.append("password", p); const res = await fetch(WEB_APP_URL, { method: "POST", body: params }); const data = await res.json(); if(data.success) { showToast("Registered! Please wait for admin approval.", "success"); setTimeout(() => renderAuthPage(), 2000); } else { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">${data.error}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:12px;border-radius:20px;">Network error</div>`; } }; document.getElementById("showLogin").onclick = () => renderAuthPage(); }
     
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
@@ -712,26 +400,15 @@
             <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
             <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div></div>
             <div id="cardContainer"><div class="waiting-card">Click Sync to load data</div></div>
-            <div class="footer-note">✅ Today's My KYC: Your "KYC DONE" updates today | Today's Total KYC: All users' "KYC DONE" updates today | Bar chart: Each Sansad has unique color</div>
+            <div class="footer-note">✅ Mandatory remark selection + confirmation required before update. Today's counts reflect only "KYC DONE" updates.</div>
         `;
-        
         window.currentUser = currentUser;
         window.getMyUpdates = getMyUpdates;
         window.getAllUsersPerformance = getAllUsersPerformance;
         window.getMyTodayKycCount = getMyTodayKycCount;
         window.getTodayKycCount = getTodayKycCount;
-        
         loadQueue(); 
-        if(allRecords.length) { 
-            populateSansadDropdown(); 
-            resetFilters(); 
-            const ac = getActiveRecords().length; 
-            const uniqueSansadCount = getUniqueSansadCount(); 
-            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; 
-            updateBarChart(); 
-            renderCurrentView(); 
-        }
-        
+        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} rows / ${uniqueSansadCount} Sansads`; updateBarChart(); renderCurrentView(); }
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
         document.getElementById("uploadAllBtn").onclick = uploadAllFromQueue;
@@ -743,31 +420,12 @@
         document.getElementById("modeSearchBtn").onclick = () => { currentMode = "search"; toggleModeUI(); };
         const si = document.getElementById("globalSearchInput"); if(si) si.addEventListener("input", () => { searchQuery = si.value; performSearchAndRender(); });
         document.getElementById("logoutBtn").onclick = () => { localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
-        
         setTimeout(() => syncData(true), 500);
-        getMyUpdates(currentUser.userName); 
-        getAllUsersPerformance();
-        getMyTodayKycCount(currentUser.userName);
-        getTodayKycCount();
-        
-        // Get online count
-        fetch(`${WEB_APP_URL}?action=getOnlineCount`)
-            .then(res => res.json())
-            .then(data => { if(data.success) document.getElementById("onlineCountValue").innerText = data.count; })
-            .catch(() => {});
+        getMyUpdates(currentUser.userName); getAllUsersPerformance(); getMyTodayKycCount(currentUser.userName); getTodayKycCount();
+        fetch(`${WEB_APP_URL}?action=getOnlineCount`).then(res => res.json()).then(data => { if(data.success) document.getElementById("onlineCountValue").innerText = data.count; }).catch(() => {});
     }
     
-    function init() { 
-        const savedUser = localStorage.getItem(SESSION_KEY); 
-        if(savedUser) { 
-            try { 
-                currentUser = JSON.parse(savedUser); 
-                window.currentUser = currentUser;
-                renderMainApp(); 
-                checkIn(currentUser.userName); 
-            } catch(e) { renderAuthPage(); } 
-        } else { renderAuthPage(); } 
-    }
+    function init() { const savedUser = localStorage.getItem(SESSION_KEY); if(savedUser) { try { currentUser = JSON.parse(savedUser); window.currentUser = currentUser; renderMainApp(); checkIn(currentUser.userName); } catch(e) { renderAuthPage(); } } else { renderAuthPage(); } }
     init();
 </script>
 </body>
