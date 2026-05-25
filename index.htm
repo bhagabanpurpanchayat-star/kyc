@@ -21,13 +21,144 @@
         .auth-card { background: white; border-radius: 32px; padding: 32px; margin-top: 20px; }
         .stat-value.today-kyc { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .stat-value.my-today-kyc { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
-        .user-header { background: white; border-radius: 28px; padding: 14px 18px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .user-stats { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 12px; border-radius: 40px; flex-wrap: wrap; }
-        .stat-item { display: flex; align-items: center; gap: 4px; font-size: 0.65rem; }
-        .stat-label { color: #64748b; }
-        .stat-value { font-weight: 800; color: #ec4899; background: white; padding: 2px 6px; border-radius: 20px; min-width: 30px; text-align: center; font-size: 0.7rem; }
-        .divider { width: 1px; height: 16px; background: #cbd5e1; }
-        .logout-btn { background: #ef4444; border: none; padding: 6px 16px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; font-size: 0.7rem; }
+        .user-header { background: white; border-radius: 28px; padding: 12px 14px; margin-bottom: 12px; }
+        .user-header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .user-name-area { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .user-name { font-weight: 700; font-size: 0.8rem; }
+        .surveyor-badge { font-size: 0.5rem; color: #8b5cf6; background: #ede9fe; padding: 2px 8px; border-radius: 20px; }
+        .logout-btn { background: #ef4444; border: none; padding: 5px 12px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; font-size: 0.65rem; }
+        .user-stats { display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 5px 10px; border-radius: 40px; flex-wrap: wrap; }
+        .stat-item { display: flex; align-items: center; gap: 3px; font-size: 0.6rem; }
+        .stat-label { color: #64748b; font-size: 0.55rem; }
+        .stat-value { font-weight: 800; color: #ec4899; background: white; padding: 2px 5px; border-radius: 20px; min-width: 25px; text-align: center; font-size: 0.65rem; }
+        .divider { width: 1px; height: 12px; background: #cbd5e1; }
+        .refresh-icon { background: none; border: none; font-size: 0.55rem; cursor: pointer; padding: 2px 3px; border-radius: 20px; }
+        
+        /* COMPACT HEADER SECTION: all in one card */
+        .compact-header-card {
+            background: white;
+            border-radius: 24px;
+            padding: 12px 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .portal-title-row {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .portal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ecfdf5;
+            padding: 5px 12px;
+            border-radius: 60px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .online-pulse {
+            width: 6px;
+            height: 6px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.2s infinite;
+        }
+        .last-active-label {
+            font-size: 0.6rem;
+            font-weight: 800;
+            color: #047857;
+        }
+        .user-name-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: #d1fae5;
+            padding: 2px 8px;
+            border-radius: 30px;
+            color: #065f46;
+        }
+        .last-time-pink {
+            font-size: 0.55rem;
+            font-weight: 700;
+            background: #fce7f3;
+            color: #be185d;
+            padding: 3px 8px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Bar chart inside same card - small fonts */
+        .inline-chart {
+            margin-top: 5px;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 5px 4px;
+        }
+        .chart-title-mini {
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        .chart-bars-mini {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+            align-items: flex-end;
+            height: 45px;
+        }
+        .chart-bar-item-mini {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+        .bar-value-mini {
+            font-size: 0.45rem;
+            font-weight: 800;
+            color: #4f46e5;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+        .bar-mini {
+            width: 100%;
+            max-width: 18px;
+            border-radius: 2px 2px 2px 2px;
+            min-height: 3px;
+            transition: height 0.3s ease;
+            margin: 0 auto;
+        }
+        .bar-label-mini {
+            font-size: 0.45rem;
+            font-weight: 800;
+            color: #475569;
+            margin-top: 2px;
+            text-align: center;
+        }
+        .chart-legend-mini {
+            font-size: 0.4rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 2px;
+        }
+        
         .sync-container { background: white; border-radius: 60px; padding: 10px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
         .record-count { font-size: 0.65rem; color: #475569; }
         .last-sync { font-size: 0.55rem; color: #6b7280; }
@@ -58,7 +189,6 @@
         .result-item { background: white; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; border: 1px solid #e2e8f0; }
         .result-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
         .result-name { font-weight: 700; font-size: 0.75rem; }
-        .refresh-icon { background: none; border: none; font-size: 0.65rem; cursor: pointer; padding: 2px 4px; border-radius: 20px; }
         .search-filter-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
         .mode-toggle { background: #f1f5f9; border: none; padding: 6px 14px; border-radius: 40px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
         .mode-toggle.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
@@ -67,14 +197,6 @@
         .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 12px; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #ec4899, #db2777); width: 0%; transition: width 0.3s; }
         .footer-note { text-align: center; font-size: 0.55rem; color: rgba(255,255,255,0.9); margin-top: 16px; }
-        .chart-container { background: #f8fafc; border-radius: 20px; padding: 6px; min-width: 140px; }
-        .chart-title { font-size: 0.5rem; font-weight: 700; color: #64748b; text-align: center; margin-bottom: 4px; }
-        .chart-bars { display: flex; gap: 4px; justify-content: center; align-items: flex-end; height: 60px; }
-        .chart-bar-item { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
-        .bar-value-top { font-size: 0.5rem; font-weight: 800; color: #4f46e5; margin-bottom: 2px; text-align: center; white-space: nowrap; }
-        .bar { width: 100%; max-width: 20px; border-radius: 3px 3px 2px 2px; min-height: 3px; transition: height 0.3s ease; margin: 0 auto; }
-        .bar-label { font-size: 0.5rem; font-weight: 800; color: #475569; margin-top: 3px; text-align: center; }
-        .chart-legend { font-size: 0.45rem; color: #94a3b8; text-align: center; margin-top: 3px; }
         .online-dot-small { width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
         
@@ -93,7 +215,7 @@
 
 <script>
     // ==================== CONFIGURATION ====================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzhX-LYua62PlA30E6mkBZdwk9OJHzlYsUnYEY63cGhcC4m6cNu5S6UNz7p84cNmgBm/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyyj-bI8BuJN-9eZ7hXnBbQ1_5D7ThpOuzqaIV2HKOlmUrJNnkPexnn54ZjCy3Qm2CC/exec";
     
     const COL_SANSAD = 3;
     const COL_JOB_CARD = 4;
@@ -121,11 +243,13 @@
     let searchQuery = "";
     let heartbeatInterval = null;
     let onlinePollInterval = null;
+    let lastActivePollInterval = null;
     
     const QUEUE_KEY = "kyc_queue_v7";
     const SESSION_KEY = "kyc_session";
     const HEARTBEAT_INTERVAL = 45 * 1000;
     const ONLINE_POLL_INTERVAL = 20 * 1000;
+    const LAST_ACTIVE_POLL_INTERVAL = 15 * 1000;
     
     function generateSessionId() { return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
     function escapeHtml(s) { if(!s) return ""; return String(s).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
@@ -214,136 +338,87 @@
     
     function getColorForSansad(index) { const colors = BAR_GRADIENTS[index % BAR_GRADIENTS.length]; return `linear-gradient(180deg, ${colors.top}, ${colors.bottom})`; }
     
-    function updateBarChart() {
+    function updateMiniBarChart() {
         const counts = getVerificationCounts();
         const sansads = Array.from(counts.keys()).sort((a, b) => {
             const getNum = (s) => { const match = s.match(/\d+$/); if (match) return parseInt(match[0]); const romanMatch = s.match(/\/([IVXLCDM]+)$/i); if (romanMatch) { const roman = romanMatch[1].toUpperCase(); const romanMap = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 }; return romanMap[roman] || 999; } return 999; };
             return getNum(a) - getNum(b);
         });
         const maxCount = Math.max(...Array.from(counts.values()), 1);
-        const chartContainer = document.getElementById("barChartContainer");
+        const chartContainer = document.getElementById("miniBarChartContainer");
         if(!chartContainer) return;
-        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title">✓ KYC Completed</div><div class="chart-legend">No records yet</div>`; return; }
-        let barsHtml = `<div class="chart-title">✓ KYC Completed</div><div class="chart-bars">`;
+        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-legend-mini">No records yet</div>`; return; }
+        let barsHtml = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-bars-mini">`;
         sansads.forEach((sansad, idx) => {
             const count = counts.get(sansad) || 0;
-            const height = Math.max(6, Math.min(40, (count / maxCount) * 40));
+            const height = Math.max(5, Math.min(32, (count / maxCount) * 32));
             const romanLabel = toRomanLabel(sansad);
             const gradient = getColorForSansad(idx);
-            barsHtml += `<div class="chart-bar-item"><div class="bar-value-top">${count}</div><div class="bar" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label">${romanLabel}</div></div>`;
+            barsHtml += `<div class="chart-bar-item-mini"><div class="bar-value-mini">${count}</div><div class="bar-mini" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label-mini">${romanLabel}</div></div>`;
         });
-        barsHtml += `</div><div class="chart-legend">Verification count</div>`;
+        barsHtml += `</div><div class="chart-legend-mini">Verification count</div>`;
         chartContainer.innerHTML = barsHtml;
     }
     
-    function updateFilterDisplays() {
-        const sansadCount = getUniqueSansadCount();
-        const sansadSpan = document.getElementById("sansadCount");
-        if(sansadSpan) { sansadSpan.innerText = sansadCount; if(sansadCount === 0) sansadSpan.classList.add("zero"); else sansadSpan.classList.remove("zero"); }
-        if(selectedSansad) {
-            const jobCount = getUniqueJobCardCount(selectedSansad);
-            const jobSpan = document.getElementById("jobCardCount");
-            if(jobSpan) { jobSpan.innerText = jobCount; if(jobCount === 0) jobSpan.classList.add("zero"); else jobSpan.classList.remove("zero"); }
+    // Helper to format time ago
+    function getTimeAgoShort(timestamp) {
+        if (!timestamp) return "";
+        try {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            if (diffMins < 1) return "just now";
+            if (diffMins < 60) return `${diffMins}m ago`;
+            const diffHours = Math.floor(diffMs / 3600000);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            const diffDays = Math.floor(diffMs / 86400000);
+            return `${diffDays}d ago`;
+        } catch(e) { return ""; }
+    }
+    
+    // Fetch last active user with time, display in compact pink style
+    async function fetchAndDisplayLastActive() {
+        if (!currentUser) return;
+        try {
+            const response = await fetch(`${WEB_APP_URL}?action=getLastActiveUser`);
+            const data = await response.json();
+            const container = document.getElementById("lastActiveContainer");
+            if (!container) return;
+            if (data.success && data.hasData && data.lastUser) {
+                const lastUser = data.lastUser;
+                const userName = lastUser.userName || "Unknown";
+                const timestamp = lastUser.timestamp;
+                const timeAgo = getTimeAgoShort(timestamp);
+                container.innerHTML = `
+                    <div class="status-bar">
+                        <div class="status-left">
+                            <span class="online-pulse"></span>
+                            <span class="last-active-label">🕐 Last Active User</span>
+                            <span class="user-name-badge">${escapeHtml(userName)}</span>
+                        </div>
+                        <div class="last-time-pink">
+                            ⏱️ ${timeAgo}
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="status-bar">
+                        <div class="status-left">
+                            <span class="online-pulse"></span>
+                            <span class="last-active-label">🕐 Last Active User</span>
+                            <span class="user-name-badge">—</span>
+                        </div>
+                        <div class="last-time-pink">⏱️ —</div>
+                    </div>
+                `;
+            }
+        } catch(e) { 
+            const container = document.getElementById("lastActiveContainer");
+            if(container) container.innerHTML = `<div class="status-bar"><div class="status-left"><span class="last-active-label">🕐 Last Active User</span><span class="user-name-badge">?</span></div><div class="last-time-pink">⏱️ error</div></div>`;
         }
-        if(selectedSansad && selectedJobCard) {
-            const appCount = getUniqueApplicantCount(selectedSansad, selectedJobCard);
-            const appSpan = document.getElementById("applicantCount");
-            if(appSpan) { appSpan.innerText = appCount; if(appCount === 0) appSpan.classList.add("zero"); else appSpan.classList.remove("zero"); }
-        }
     }
-    
-    function populateSansadDropdown() { 
-        const vals = getUniqueSansadValues(); 
-        const sel = document.getElementById("filterSansad"); 
-        if(!sel) return; 
-        sel.innerHTML = '<option value="">-- Select Sansad --</option>'; 
-        vals.forEach(v => { sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); 
-        updateFilterDisplays(); 
-    }
-    
-    function updateJobCardDropdown() { 
-        if(!selectedSansad) { const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } updateFilterDisplays(); return; } 
-        const vals = getUniqueJobCardValues(selectedSansad); 
-        const jobSel = document.getElementById("filterJobCard"); 
-        if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } 
-        selectedJobCard = ""; selectedApplicant = ""; 
-        const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } 
-        filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
-    }
-    
-    function updateApplicantDropdown() { 
-        if(!selectedSansad || !selectedJobCard) { const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } updateFilterDisplays(); return; } 
-        const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); 
-        const appSel = document.getElementById("filterApplicant"); 
-        if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } 
-        selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
-    }
-    
-    function resetFilters() { selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); }
-    
-    function toggleModeUI() { const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); else if(currentMode === "filter") renderCurrentView(); else renderWaiting(); }
-    
-    function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
-    function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
-    
-    function performSearchAndRender() { const inp = document.getElementById("globalSearchInput"); if(!inp) return; searchQuery = inp.value; if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } const results = searchRecords(searchQuery); if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } }
-    
-    function renderCompactResultList(records) { const container = document.getElementById("cardContainer"); if(!container) return; let html = `<div style="font-size:0.65rem;text-align:center;margin-bottom:8px;">📋 ${records.length} results · tap to update</div>`; records.forEach(rec => { html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.6rem;background:#f1f5f9;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.6rem;background:#ede9fe;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.5rem;">→</span></div></div>`; }); container.innerHTML = html; records.forEach(rec => { const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; }); }
-    
-    function renderWaitingWithMessage(msg) { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">${msg}</div>`; }
-    function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.6rem;">(${uniqueSansadCount} Sansads pending)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; }
-    function renderCurrentView() { if(currentMode === "filter") { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } }
-    function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found</div>`; }
-    
-    async function directUpdateWithConfirmation(rec, rm) { 
-        if(!rm || rm.trim() === "") { showToast("⚠️ Remark is mandatory!", "error"); return false; }
-        showConfirmationModal(rm, rec.applicantName, async () => {
-            showProgress(1,1,"Updating..."); 
-            try { 
-                const p = new URLSearchParams(); 
-                p.append("action", "updateRemarks"); 
-                p.append("sheetRow", rec.sheetRow); 
-                p.append("newRemarks", rm); 
-                p.append("userName", currentUser.userName); 
-                const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); 
-                const result = await res.json(); 
-                if(result.success) { 
-                    rec.currentRemark = rm; 
-                    hideProgress(); 
-                    showToast("✅ Updated!", "success"); 
-                    filteredRecord = null; 
-                    resetFilters(); 
-                    await getMyUpdates(currentUser.userName); 
-                    await getAllUsersPerformance(); 
-                    await getMyTodayKycCount(currentUser.userName);
-                    await getTodayKycCount();
-                    updateFilterDisplays(); 
-                    updateBarChart(); 
-                    renderCurrentView();
-                    return true; 
-                } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } 
-            } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } 
-        }, () => { showToast("Cancelled", "warning"); });
-        return false;
-    }
-    
-    function renderSingleRecord(rec) { 
-        if(!rec) { renderCurrentView(); return; } 
-        let opts = `<option value="">-- Select remark --</option>`; 
-        DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); 
-        let guardianHtml = "";
-        if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "") {
-            guardianHtml = `<div class="field-item field-item-full"><div class="field-label-small">👨‍👩‍👧 GUARDIAN</div><div class="field-value-small guardian-info">${escapeHtml(rec.guardian)}</div></div>`;
-        }
-        const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden.</div></div>`; 
-        const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; 
-        const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); 
-        if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } await directUpdateWithConfirmation(rec, v); }; 
-        if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; 
-    }
-    
-    async function uploadSingleFromQueue() { if(pendingQueue.length === 0) return; const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); } else { showToast(`❌ Failed`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
-    async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); hideProgress(); if(filteredRecord) { filteredRecord = null; resetFilters(); } showToast(`✅ Batch complete!`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateBarChart(); renderCurrentView(); }
     
     async function syncData(isAuto = false) { 
         if(isAutoSyncing) return; 
@@ -383,7 +458,7 @@
             if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; 
             if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleTimeString()}`; 
             updateFilterDisplays(); 
-            updateBarChart(); 
+            updateMiniBarChart(); 
             populateSansadDropdown();
             resetFilters(); 
             if(!isAuto) showToast(`📥 Synced! ${ac} pending`, "success"); 
@@ -404,7 +479,6 @@
         } 
     }
     
-    // ========== ONLINE STATUS - COUNT ONLY (NO USER LIST) ==========
     async function sendHeartbeat() {
         if (!currentUser || !sessionId) return;
         try {
@@ -423,9 +497,7 @@
             if (data.success) {
                 const count = data.count || 0;
                 const onlineSpan = document.getElementById("onlineCountValue");
-                if (onlineSpan) {
-                    onlineSpan.innerText = count;
-                }
+                if (onlineSpan) onlineSpan.innerText = count;
             }
         } catch(e) { console.log("Online fetch error:", e); }
     }
@@ -433,15 +505,19 @@
     function startOnlineMonitoring() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (onlinePollInterval) clearInterval(onlinePollInterval);
+        if (lastActivePollInterval) clearInterval(lastActivePollInterval);
         sendHeartbeat();
         heartbeatInterval = setInterval(() => sendHeartbeat(), HEARTBEAT_INTERVAL);
         onlinePollInterval = setInterval(() => fetchOnlineCount(), ONLINE_POLL_INTERVAL);
+        lastActivePollInterval = setInterval(() => fetchAndDisplayLastActive(), LAST_ACTIVE_POLL_INTERVAL);
         fetchOnlineCount();
+        fetchAndDisplayLastActive();
     }
     
     function stopOnlineMonitoring() {
         if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
         if (onlinePollInterval) { clearInterval(onlinePollInterval); onlinePollInterval = null; }
+        if (lastActivePollInterval) { clearInterval(lastActivePollInterval); lastActivePollInterval = null; }
     }
     
     async function checkIn(userName) { 
@@ -584,25 +660,84 @@
         document.getElementById("showLogin").onclick = () => renderAuthPage();
     }
     
+    // filter functions (shortened for brevity but full logic)
+    function updateFilterDisplays() { 
+        const sansadCount = getUniqueSansadCount();
+        const sansadSpan = document.getElementById("sansadCount");
+        if(sansadSpan) { sansadSpan.innerText = sansadCount; if(sansadCount === 0) sansadSpan.classList.add("zero"); else sansadSpan.classList.remove("zero"); }
+        if(selectedSansad) { const jobCount = getUniqueJobCardCount(selectedSansad); const jobSpan = document.getElementById("jobCardCount"); if(jobSpan) { jobSpan.innerText = jobCount; if(jobCount === 0) jobSpan.classList.add("zero"); else jobSpan.classList.remove("zero"); } }
+        if(selectedSansad && selectedJobCard) { const appCount = getUniqueApplicantCount(selectedSansad, selectedJobCard); const appSpan = document.getElementById("applicantCount"); if(appSpan) { appSpan.innerText = appCount; if(appCount === 0) appSpan.classList.add("zero"); else appSpan.classList.remove("zero"); } }
+    }
+    function populateSansadDropdown() { 
+        const vals = getUniqueSansadValues(); const sel = document.getElementById("filterSansad"); if(!sel) return; sel.innerHTML = '<option value="">-- Select Sansad --</option>'; vals.forEach(v => { sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); updateFilterDisplays(); 
+    }
+    function updateJobCardDropdown() { 
+        if(!selectedSansad) { const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } updateFilterDisplays(); return; } 
+        const vals = getUniqueJobCardValues(selectedSansad); const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } selectedJobCard = ""; selectedApplicant = ""; const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
+    }
+    function updateApplicantDropdown() { 
+        if(!selectedSansad || !selectedJobCard) { const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } updateFilterDisplays(); return; } 
+        const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
+    }
+    function resetFilters() { selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); }
+    function toggleModeUI() { const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); else if(currentMode === "filter") renderCurrentView(); else renderWaiting(); }
+    function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
+    function searchRecords(query) { if (!query.trim()) return []; const lowerQuery = query.trim().toLowerCase(); return getActiveRecords().filter(rec => leftToRightMatch(rec.sansad, lowerQuery) || leftToRightMatch(rec.jobCard, lowerQuery) || leftToRightMatch(rec.applicantName, lowerQuery)); }
+    function performSearchAndRender() { const inp = document.getElementById("globalSearchInput"); if(!inp) return; searchQuery = inp.value; if(!searchQuery.trim()) { renderWaitingWithMessage("🔍 Enter search term"); filteredRecord = null; return; } const results = searchRecords(searchQuery); if(results.length === 1) { filteredRecord = results[0]; renderSingleRecord(filteredRecord); } else if(results.length > 1) { renderCompactResultList(results); filteredRecord = null; } else { renderWaitingWithMessage(`🔍 No pending records match "${escapeHtml(searchQuery)}"`); filteredRecord = null; } }
+    function renderCompactResultList(records) { const container = document.getElementById("cardContainer"); if(!container) return; let html = `<div style="font-size:0.65rem;text-align:center;margin-bottom:8px;">📋 ${records.length} results · tap to update</div>`; records.forEach(rec => { html += `<div class="result-item" data-row="${rec.sheetRow}"><div class="result-line"><span class="result-name">${escapeHtml(rec.applicantName)}</span><span style="font-size:0.6rem;background:#f1f5f9;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.jobCard)}</span><span style="font-size:0.6rem;background:#ede9fe;padding:2px 6px;border-radius:20px;">${escapeHtml(rec.sansad)}</span><span style="font-size:0.5rem;">→</span></div></div>`; }); container.innerHTML = html; records.forEach(rec => { const div = container.querySelector(`.result-item[data-row="${rec.sheetRow}"]`); if(div) div.onclick = () => { filteredRecord = rec; renderSingleRecord(rec); }; }); }
+    function renderWaitingWithMessage(msg) { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">${msg}</div>`; }
+    function renderWaiting() { const c = document.getElementById("cardContainer"); if(!c) return; const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(!allRecords.length) c.innerHTML = `<div class="waiting-card">📥 Click Sync to load data</div>`; else if(ac === 0) c.innerHTML = `<div class="waiting-card">✅ All KYC records completed!</div>`; else if(currentMode === "filter") { if(uniqueSansadCount === 0) c.innerHTML = `<div class="waiting-card">📌 No pending Sansads available.</div>`; else c.innerHTML = `<div class="waiting-card">🔒 Select Sansad, Job Card & Applicant<br><span style="font-size:0.6rem;">(${uniqueSansadCount} Sansads pending)</span></div>`; } else c.innerHTML = `<div class="waiting-card">🔍 Type in search box</div>`; }
+    function renderCurrentView() { if(currentMode === "filter") { if(!selectedSansad || !selectedJobCard || !selectedApplicant) { renderWaiting(); } else { const m = findActiveRecord(); if(m) { filteredRecord = m; renderSingleRecord(m); } else { renderNoMatch(); } } } else { if(searchQuery.trim()) performSearchAndRender(); else renderWaiting(); } }
+    function renderNoMatch() { const c = document.getElementById("cardContainer"); if(c) c.innerHTML = `<div class="waiting-card">⚠️ No pending record found</div>`; }
+    async function directUpdateWithConfirmation(rec, rm) { if(!rm || rm.trim() === "") { showToast("⚠️ Remark is mandatory!", "error"); return false; } showConfirmationModal(rm, rec.applicantName, async () => { showProgress(1,1,"Updating..."); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", rec.sheetRow); p.append("newRemarks", rm); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { rec.currentRemark = rm; hideProgress(); showToast("✅ Updated!", "success"); filteredRecord = null; resetFilters(); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateFilterDisplays(); updateMiniBarChart(); renderCurrentView(); return true; } else { hideProgress(); showToast(`❌ Failed: ${result?.error}`, "error"); return false; } } catch(e) { hideProgress(); showToast(`❌ Network error`, "error"); return false; } }, () => { showToast("Cancelled", "warning"); }); return false; }
+    function renderSingleRecord(rec) { if(!rec) { renderCurrentView(); return; } let opts = `<option value="">-- Select remark --</option>`; DROPDOWN_OPTIONS.forEach(o => { opts += `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`; }); let guardianHtml = ""; if(rec.guardian && rec.guardian !== "—" && rec.guardian.trim() !== "") { guardianHtml = `<div class="field-item field-item-full"><div class="field-label-small">👨‍👩‍👧 GUARDIAN</div><div class="field-value-small guardian-info">${escapeHtml(rec.guardian)}</div></div>`; } const html = `<div class="data-card"><div class="two-column-grid"><div class="field-item"><div class="field-label-small">🏛️ SANSAD</div><div class="field-value-small">${escapeHtml(rec.sansad)}</div></div><div class="field-item"><div class="field-label-small">🪪 JOB CARD</div><div class="field-value-small">${escapeHtml(rec.jobCard)}</div></div><div class="field-item"><div class="field-label-small">👤 APPLICANT</div><div class="field-value-small">${escapeHtml(rec.applicantName)}</div></div><div class="field-item"><div class="field-label-small">📌 REASON</div><div class="field-value-small"><span class="reason-value">${escapeHtml(rec.reason)}</span></div></div></div>${guardianHtml}<select class="remark-select" id="remarkSelect">${opts}</select><div class="action-buttons"><button class="update-now-btn" id="updateNowBtn">⚡ Update Now</button><button class="save-queue-btn" id="saveQueueBtn">💾 Save for Later</button></div><div class="completed-hint">✅ After update, this record will be hidden.</div></div>`; const c = document.getElementById("cardContainer"); if(c) c.innerHTML = html; const up = document.getElementById("updateNowBtn"), qb = document.getElementById("saveQueueBtn"), sel = document.getElementById("remarkSelect"); if(up) up.onclick = async () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } await directUpdateWithConfirmation(rec, v); }; if(qb) qb.onclick = () => { const v = sel.value; if(!v) { showToast("❌ Please select a remark!", "error"); return; } if(addToQueue(rec, v)) { sel.disabled = true; qb.disabled = true; up.disabled = true; } }; }
+    async function uploadSingleFromQueue() { if(pendingQueue.length === 0) return; const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateMiniBarChart(); renderCurrentView(); } else { showToast(`❌ Failed`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
+    async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); hideProgress(); if(filteredRecord) { filteredRecord = null; resetFilters(); } showToast(`✅ Batch complete!`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateMiniBarChart(); renderCurrentView(); }
+    
     function renderMainApp() {
         document.getElementById("app").innerHTML = `
-            <div class="user-header"><div><span style="font-weight:700;font-size:0.85rem;">👋 ${escapeHtml(currentUser.fullName)}</span><span style="font-size:0.55rem;color:#8b5cf6;margin-left:6px;">Surveyor</span></div>
-            <div class="user-stats">
-                <div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div>
-                <div class="divider"></div>
-                <div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyUpdates(window.currentUser.userName)">⟳</button></div>
-                <div class="divider"></div>
-                <div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="window.getAllUsersPerformance()">⟳</button></div>
-                <div class="divider"></div>
-                <div class="stat-item"><span class="stat-label">📅 My KYC Today:</span><span class="stat-value my-today-kyc" id="myTodayKycValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyTodayKycCount(window.currentUser.userName)">⟳</button></div>
-                <div class="divider"></div>
-                <div class="stat-item"><span class="stat-label">📅 Total KYC Today:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div>
+            <div class="user-header">
+                <div class="user-header-top">
+                    <div class="user-name-area">
+                        <span class="user-name">👋 ${escapeHtml(currentUser.fullName)}</span>
+                        <span class="surveyor-badge">Surveyor</span>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+                </div>
+                <div class="user-stats">
+                    <div class="stat-item"><span class="online-dot-small"></span><span class="stat-label">Online:</span><span class="stat-value" id="onlineCountValue">0</span></div>
+                    <div class="divider"></div>
+                    <div class="stat-item"><span class="stat-label">📊 My Updates:</span><span class="stat-value" id="myUpdatesValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyUpdates(window.currentUser.userName)">⟳</button></div>
+                    <div class="divider"></div>
+                    <div class="stat-item"><span class="stat-label">👥 All Users:</span><span class="stat-value" id="allUsersValue">0</span><button class="refresh-icon" onclick="window.getAllUsersPerformance()">⟳</button></div>
+                    <div class="divider"></div>
+                    <div class="stat-item"><span class="stat-label">📅 My KYC Today:</span><span class="stat-value my-today-kyc" id="myTodayKycValue">0</span><button class="refresh-icon" onclick="if(window.currentUser) window.getMyTodayKycCount(window.currentUser.userName)">⟳</button></div>
+                    <div class="divider"></div>
+                    <div class="stat-item"><span class="stat-label">📅 Total KYC Today:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div>
+                </div>
             </div>
-            <button class="logout-btn" id="logoutBtn">🚪 Logout</button></div>
-            <div style="background:white;border-radius:28px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                <div><h1 style="font-size:1.2rem;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📋 KYC Portal</h1></div>
-                <div class="chart-container" id="barChartContainer"><div class="chart-title">✓ KYC Completed</div><div style="font-size:0.45rem;text-align:center;">Loading...</div></div>
+            
+            <!-- COMPACT SECTION: Portal Title + Last Active (with time in pink) + Bar Chart -->
+            <div class="compact-header-card">
+                <div class="portal-title-row">
+                    <div class="portal-title">📋 KYC Portal</div>
+                </div>
+                <div id="lastActiveContainer">
+                    <div class="status-bar">
+                        <div class="status-left">
+                            <span class="online-pulse"></span>
+                            <span class="last-active-label">🕐 Last Active User</span>
+                            <span class="user-name-badge">—</span>
+                        </div>
+                        <div class="last-time-pink">⏱️ —</div>
+                    </div>
+                </div>
+                <div id="miniBarChartContainer" class="inline-chart">
+                    <div class="chart-title-mini">✓ KYC Completed</div>
+                    <div class="chart-legend-mini">Loading...</div>
+                </div>
             </div>
+            
             <div class="queue-bar" id="queueBar" style="display:none;"><div><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
             <div class="sync-container"><div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync</button></div>
             <div id="syncProgressContainer" class="sync-progress-container" style="display:none;"><div class="sync-progress-bar-bg"><div id="syncProgressFill" class="sync-progress-fill"></div></div><div id="syncProgressText" class="sync-progress-text">Syncing...</div></div>
@@ -613,7 +748,7 @@
             <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
             <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div></div>
             <div id="cardContainer"><div class="waiting-card">Click Sync to load data</div></div>
-            <div class="footer-note">✅ Online: Users active in last 3 min | Heartbeat every 45 sec</div>
+            <div class="footer-note">✅ Online: Users active in last 3 min | Last active updates every 15 sec</div>
         `;
         
         window.currentUser = currentUser;
@@ -623,7 +758,7 @@
         window.getTodayKycCount = getTodayKycCount;
         
         loadQueue(); 
-        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; updateBarChart(); renderCurrentView(); }
+        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; updateMiniBarChart(); renderCurrentView(); }
         
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
@@ -638,7 +773,6 @@
         document.getElementById("logoutBtn").onclick = () => { stopOnlineMonitoring(); localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
         
         startOnlineMonitoring();
-        
         setTimeout(() => syncData(true), 500);
         getMyUpdates(currentUser.userName); getAllUsersPerformance(); getMyTodayKycCount(currentUser.userName); getTodayKycCount();
     }
