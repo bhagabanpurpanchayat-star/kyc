@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>KYC Portal - Dual KYC Counters</title>
+    <title>KYC Portal - Export by Each Remark</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 16px; }
@@ -14,6 +14,7 @@
         .loading-spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #ec4899; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .prominent-sync-btn { background: linear-gradient(135deg, #ec4899, #db2777); border: none; padding: 10px 20px; border-radius: 50px; color: white; cursor: pointer; font-weight: 700; }
+        .export-excel-btn { background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 10px 18px; border-radius: 50px; color: white; font-weight: 700; cursor: pointer; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; }
         .sync-progress-container { margin-top: 8px; display: none; }
         .sync-progress-bar-bg { background: #e2e8f0; border-radius: 20px; height: 6px; }
         .sync-progress-fill { background: linear-gradient(90deg, #10b981, #059669); width: 0%; height: 100%; border-radius: 20px; transition: width 0.3s; }
@@ -34,7 +35,6 @@
         .divider { width: 1px; height: 12px; background: #cbd5e1; }
         .refresh-icon { background: none; border: none; font-size: 0.55rem; cursor: pointer; padding: 2px 3px; border-radius: 20px; }
         
-        /* COMPACT HEADER SECTION: all in one card */
         .compact-header-card {
             background: white;
             border-radius: 24px;
@@ -102,7 +102,6 @@
             align-items: center;
             gap: 4px;
         }
-        /* Bar chart inside same card - small fonts */
         .inline-chart {
             margin-top: 5px;
             background: #f8fafc;
@@ -208,6 +207,15 @@
         .modal-buttons button { flex: 1; padding: 10px; border-radius: 40px; font-weight: 700; border: none; cursor: pointer; font-size: 0.75rem; }
         .confirm-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .cancel-btn { background: #e2e8f0; color: #475569; }
+        
+        /* Enhanced Export Dropdown with Categories */
+        .export-dropdown { position: relative; display: inline-block; }
+        .export-menu { display: none; position: absolute; background: white; min-width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 16px; z-index: 100; right: 0; top: 45px; overflow: hidden; max-height: 450px; overflow-y: auto; }
+        .export-menu.show { display: block; }
+        .export-menu button { width: 100%; padding: 10px 14px; text-align: left; background: white; border: none; border-bottom: 1px solid #eef2ff; cursor: pointer; font-size: 0.7rem; font-weight: 600; color: #1f2937; }
+        .export-menu button:last-child { border-bottom: none; }
+        .export-menu button:hover { background: #f3f4f6; }
+        .export-category-title { background: #e0e7ff; color: #3730a3; font-size: 0.65rem; font-weight: 800; padding: 8px 12px; border-bottom: 1px solid #c7d2fe; position: sticky; top: 0; }
     </style>
 </head>
 <body>
@@ -265,6 +273,70 @@
         setTimeout(() => t.remove(), 2600); 
     }
     
+    // ========== ENHANCED EXCEL EXPORT FUNCTIONS ==========
+    function exportToCSV(recordsToExport, filename = "kyc_export.csv") {
+        if (!recordsToExport || recordsToExport.length === 0) {
+            showToast("No data to export!", "error");
+            return false;
+        }
+        const headers = ["S.No", "Sansad", "Job Card Number", "Applicant Name", "Guardian Name", "Reason", "Current Remark (KYC Status)"];
+        const csvRows = [headers];
+        recordsToExport.forEach((rec, idx) => {
+            const row = [
+                idx + 1,
+                rec.sansad || "—",
+                rec.jobCard || "—",
+                rec.applicantName || "—",
+                rec.guardian || "—",
+                rec.reason || "—",
+                rec.currentRemark || ""
+            ];
+            csvRows.push(row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","));
+        });
+        const csvString = csvRows.join("\n");
+        const blob = new Blob(["\uFEFF" + csvString], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast(`📊 Exported ${recordsToExport.length} records!`, "success");
+        return true;
+    }
+    
+    function getAllRecordsForExport() { return allRecords.map(rec => ({ ...rec })); }
+    function getIncompleteRecords() { return allRecords.filter(r => !r.currentRemark || r.currentRemark.trim() === ""); }
+    function getCompletedRecords() { return allRecords.filter(r => r.currentRemark && r.currentRemark.trim() !== ""); }
+    function getRecordsByRemark(remarkValue) {
+        if (!remarkValue) return [];
+        return allRecords.filter(rec => (rec.currentRemark || "").trim() === remarkValue);
+    }
+    function getUniqueRemarks() {
+        const remarks = new Set();
+        allRecords.forEach(rec => {
+            const remark = (rec.currentRemark || "").trim();
+            if (remark !== "") remarks.add(remark);
+        });
+        return Array.from(remarks).sort();
+    }
+    
+    function toggleExportMenu() { 
+        const menu = document.getElementById("exportMenu"); 
+        if (menu) menu.classList.toggle("show"); 
+    }
+    
+    document.addEventListener("click", function(e) { 
+        const container = document.querySelector(".export-dropdown"); 
+        if (container && !container.contains(e.target)) { 
+            const menu = document.getElementById("exportMenu"); 
+            if (menu) menu.classList.remove("show"); 
+        } 
+    });
+    
+    // ========== ALL ORIGINAL CORE FUNCTIONS (Preserved) ==========
     function showConfirmationModal(remark, applicantName, onConfirm, onCancel) {
         const modalDiv = document.createElement("div");
         modalDiv.className = "modal-overlay";
@@ -294,21 +366,11 @@
         if(c === t) setTimeout(() => o.remove(), 800); 
     }
     function hideProgress() { const o = document.querySelector(".progress-overlay"); if(o) o.remove(); }
-    
     function saveQueue() { localStorage.setItem(QUEUE_KEY, JSON.stringify(pendingQueue)); updateQueueUI(); }
     function loadQueue() { const s = localStorage.getItem(QUEUE_KEY); if(s) { pendingQueue = JSON.parse(s); updateQueueUI(); } }
     function updateQueueUI() { const b = document.getElementById("queueBar"); if(b) { b.style.display = pendingQueue.length > 0 ? "flex" : "none"; const qc = document.getElementById("queueCount"); if(qc) qc.innerText = `${pendingQueue.length}`; } }
-    
-    function addToQueue(r, rm) { 
-        if(pendingQueue.some(i => i.sheetRow === r.sheetRow)) { showToast("⚠️ Already in queue!", "error"); return false; } 
-        pendingQueue.push({ sheetRow: r.sheetRow, newRemarks: rm, sansad: r.sansad, jobCard: r.jobCard, applicantName: r.applicantName }); 
-        saveQueue(); 
-        showToast(`💾 Saved (${pendingQueue.length} pending)`, "warning"); 
-        return true; 
-    }
-    
+    function addToQueue(r, rm) { if(pendingQueue.some(i => i.sheetRow === r.sheetRow)) { showToast("⚠️ Already in queue!", "error"); return false; } pendingQueue.push({ sheetRow: r.sheetRow, newRemarks: rm, sansad: r.sansad, jobCard: r.jobCard, applicantName: r.applicantName }); saveQueue(); showToast(`💾 Saved (${pendingQueue.length} pending)`, "warning"); return true; }
     function getActiveRecords() { return allRecords.filter(r => !r.currentRemark || r.currentRemark.trim() === ""); }
-    function getCompletedRecords() { return allRecords.filter(r => r.currentRemark && r.currentRemark.trim() !== ""); }
     function getUniqueSansadCount() { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad && r.sansad !== "—") s.add(r.sansad); }); return s.size; }
     function getUniqueJobCardCount(sansad) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") s.add(r.jobCard); }); return s.size; }
     function getUniqueApplicantCount(sansad, jobCard) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") s.add(r.applicantName); }); return s.size; }
@@ -316,369 +378,41 @@
     function getUniqueJobCardValues(sansad) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard && r.jobCard !== "—") s.add(r.jobCard); }); return Array.from(s).sort(); }
     function getUniqueApplicantValues(sansad, jobCard) { const s = new Set(); getActiveRecords().forEach(r => { if(r.sansad === sansad && r.jobCard === jobCard && r.applicantName && r.applicantName !== "—") s.add(r.applicantName); }); return Array.from(s).sort(); }
     function findActiveRecord() { if(!selectedSansad || !selectedJobCard || !selectedApplicant) return null; return getActiveRecords().find(r => r.sansad === selectedSansad && r.jobCard === selectedJobCard && r.applicantName === selectedApplicant); }
-    
-    function getVerificationCounts() {
-        const completed = getCompletedRecords();
-        const counts = new Map();
-        completed.forEach(r => { if(r.sansad && r.sansad !== "—") counts.set(r.sansad, (counts.get(r.sansad) || 0) + 1); });
-        return counts;
-    }
-    
-    function toRomanLabel(sansad) {
-        if (!sansad) return "?";
-        const upper = sansad.toUpperCase();
-        let slashMatch = upper.match(/\/([IVXLCDM]+)$/);
-        if (slashMatch) return slashMatch[1];
-        let numMatch = upper.match(/(\d+)$/);
-        if (numMatch) { const num = parseInt(numMatch[0]); const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]; return romanNumerals[num] || num.toString(); }
-        let romanMatch = upper.match(/\b([IVXLCDM]+)\b/);
-        if (romanMatch && romanMatch[1].length <= 4) return romanMatch[1];
-        return sansad.substring(0, 3);
-    }
-    
+    function getVerificationCounts() { const completed = getCompletedRecords(); const counts = new Map(); completed.forEach(r => { if(r.sansad && r.sansad !== "—") counts.set(r.sansad, (counts.get(r.sansad) || 0) + 1); }); return counts; }
+    function toRomanLabel(sansad) { if (!sansad) return "?"; const upper = sansad.toUpperCase(); let slashMatch = upper.match(/\/([IVXLCDM]+)$/); if (slashMatch) return slashMatch[1]; let numMatch = upper.match(/(\d+)$/); if (numMatch) { const num = parseInt(numMatch[0]); const romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"]; return romanNumerals[num] || num.toString(); } let romanMatch = upper.match(/\b([IVXLCDM]+)\b/); if (romanMatch && romanMatch[1].length <= 4) return romanMatch[1]; return sansad.substring(0, 3); }
     function getColorForSansad(index) { const colors = BAR_GRADIENTS[index % BAR_GRADIENTS.length]; return `linear-gradient(180deg, ${colors.top}, ${colors.bottom})`; }
-    
-    function updateMiniBarChart() {
-        const counts = getVerificationCounts();
-        const sansads = Array.from(counts.keys()).sort((a, b) => {
-            const getNum = (s) => { const match = s.match(/\d+$/); if (match) return parseInt(match[0]); const romanMatch = s.match(/\/([IVXLCDM]+)$/i); if (romanMatch) { const roman = romanMatch[1].toUpperCase(); const romanMap = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 }; return romanMap[roman] || 999; } return 999; };
-            return getNum(a) - getNum(b);
-        });
-        const maxCount = Math.max(...Array.from(counts.values()), 1);
-        const chartContainer = document.getElementById("miniBarChartContainer");
-        if(!chartContainer) return;
-        if(sansads.length === 0) { chartContainer.innerHTML = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-legend-mini">No records yet</div>`; return; }
-        let barsHtml = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-bars-mini">`;
-        sansads.forEach((sansad, idx) => {
-            const count = counts.get(sansad) || 0;
-            const height = Math.max(5, Math.min(32, (count / maxCount) * 32));
-            const romanLabel = toRomanLabel(sansad);
-            const gradient = getColorForSansad(idx);
-            barsHtml += `<div class="chart-bar-item-mini"><div class="bar-value-mini">${count}</div><div class="bar-mini" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label-mini">${romanLabel}</div></div>`;
-        });
-        barsHtml += `</div><div class="chart-legend-mini">Verification count</div>`;
-        chartContainer.innerHTML = barsHtml;
-    }
-    
-    // Helper to format time ago
-    function getTimeAgoShort(timestamp) {
-        if (!timestamp) return "";
-        try {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            if (diffMins < 1) return "just now";
-            if (diffMins < 60) return `${diffMins}m ago`;
-            const diffHours = Math.floor(diffMs / 3600000);
-            if (diffHours < 24) return `${diffHours}h ago`;
-            const diffDays = Math.floor(diffMs / 86400000);
-            return `${diffDays}d ago`;
-        } catch(e) { return ""; }
-    }
-    
-    // Fetch last active user with time, display in compact pink style
-    async function fetchAndDisplayLastActive() {
-        if (!currentUser) return;
-        try {
-            const response = await fetch(`${WEB_APP_URL}?action=getLastActiveUser`);
-            const data = await response.json();
-            const container = document.getElementById("lastActiveContainer");
-            if (!container) return;
-            if (data.success && data.hasData && data.lastUser) {
-                const lastUser = data.lastUser;
-                const userName = lastUser.userName || "Unknown";
-                const timestamp = lastUser.timestamp;
-                const timeAgo = getTimeAgoShort(timestamp);
-                container.innerHTML = `
-                    <div class="status-bar">
-                        <div class="status-left">
-                            <span class="online-pulse"></span>
-                            <span class="last-active-label">🕐 Last Active User</span>
-                            <span class="user-name-badge">${escapeHtml(userName)}</span>
-                        </div>
-                        <div class="last-time-pink">
-                            ⏱️ ${timeAgo}
-                        </div>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="status-bar">
-                        <div class="status-left">
-                            <span class="online-pulse"></span>
-                            <span class="last-active-label">🕐 Last Active User</span>
-                            <span class="user-name-badge">—</span>
-                        </div>
-                        <div class="last-time-pink">⏱️ —</div>
-                    </div>
-                `;
-            }
-        } catch(e) { 
-            const container = document.getElementById("lastActiveContainer");
-            if(container) container.innerHTML = `<div class="status-bar"><div class="status-left"><span class="last-active-label">🕐 Last Active User</span><span class="user-name-badge">?</span></div><div class="last-time-pink">⏱️ error</div></div>`;
-        }
-    }
+    function updateMiniBarChart() { const counts = getVerificationCounts(); const sansads = Array.from(counts.keys()).sort((a,b)=> { const getNum = (s)=> { const match = s.match(/\d+$/); if(match) return parseInt(match[0]); const rm = s.match(/\/([IVXLCDM]+)$/i); if(rm) { const rom = rm[1].toUpperCase(); const map = { I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8, IX:9, X:10 }; return map[rom]||999; } return 999; }; return getNum(a)-getNum(b); }); const maxCount = Math.max(...Array.from(counts.values()),1); const container = document.getElementById("miniBarChartContainer"); if(!container) return; if(sansads.length===0) { container.innerHTML = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-legend-mini">No records yet</div>`; return; } let barsHtml = `<div class="chart-title-mini">✓ KYC Completed</div><div class="chart-bars-mini">`; sansads.forEach((sansad,idx)=>{ const count = counts.get(sansad)||0; const height = Math.max(5, Math.min(32, (count/maxCount)*32)); const romanLabel = toRomanLabel(sansad); const gradient = getColorForSansad(idx); barsHtml += `<div class="chart-bar-item-mini"><div class="bar-value-mini">${count}</div><div class="bar-mini" style="height: ${height}px; background: ${gradient};"></div><div class="bar-label-mini">${romanLabel}</div></div>`; }); barsHtml += `</div><div class="chart-legend-mini">Verification count</div>`; container.innerHTML = barsHtml; }
+    function getTimeAgoShort(timestamp) { if(!timestamp) return ""; try { const date = new Date(timestamp); const now = new Date(); const diffMs = now - date; const diffMins = Math.floor(diffMs/60000); if(diffMins<1) return "just now"; if(diffMins<60) return `${diffMins}m ago`; const diffHours = Math.floor(diffMs/3600000); if(diffHours<24) return `${diffHours}h ago`; const diffDays = Math.floor(diffMs/86400000); return `${diffDays}d ago`; } catch(e) { return ""; } }
+    async function fetchAndDisplayLastActive() { if(!currentUser) return; try { const res = await fetch(`${WEB_APP_URL}?action=getLastActiveUser`); const data = await res.json(); const container = document.getElementById("lastActiveContainer"); if(!container) return; if(data.success && data.hasData && data.lastUser) { const lastUser = data.lastUser; const userName = lastUser.userName || "Unknown"; const timestamp = lastUser.timestamp; const timeAgo = getTimeAgoShort(timestamp); container.innerHTML = `<div class="status-bar"><div class="status-left"><span class="online-pulse"></span><span class="last-active-label">🕐 Last Active User</span><span class="user-name-badge">${escapeHtml(userName)}</span></div><div class="last-time-pink">⏱️ ${timeAgo}</div></div>`; } else { container.innerHTML = `<div class="status-bar"><div class="status-left"><span class="online-pulse"></span><span class="last-active-label">🕐 Last Active User</span><span class="user-name-badge">—</span></div><div class="last-time-pink">⏱️ —</div></div>`; } } catch(e) { } }
     
     async function syncData(isAuto = false) { 
-        if(isAutoSyncing) return; 
-        isAutoSyncing = true; 
-        const syncBtn = document.getElementById("syncBtn");
-        const progressContainer = document.getElementById("syncProgressContainer");
-        const progressFill = document.getElementById("syncProgressFill");
-        const progressText = document.getElementById("syncProgressText");
-        if(!isAuto && syncBtn) syncBtn.disabled = true; 
-        if(progressContainer) progressContainer.style.display = "block";
-        if(progressFill) progressFill.style.width = "0%";
-        if(progressText) progressText.innerText = "Connecting...";
-        const container = document.getElementById("cardContainer"); 
-        if(container) container.innerHTML = `<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; 
-        try { 
-            if(progressFill) progressFill.style.width = "30%";
-            if(progressText) progressText.innerText = "Fetching...";
-            const res = await fetch(WEB_APP_URL + "?action=getData"); 
-            if(!res.ok) throw new Error(`HTTP ${res.status}`);
-            const raw = await res.json(); 
-            if(progressFill) progressFill.style.width = "70%";
-            if(progressText) progressText.innerText = "Processing...";
-            allRecords = raw.map((row, i) => ({ 
-                sheetRow: i+2, 
-                sansad: row[COL_SANSAD] || "—", 
-                jobCard: row[COL_JOB_CARD] || "—", 
-                applicantName: row[COL_APPLICANT_NAME] || "—",
-                guardian: row[COL_GUARDIAN] || "—",
-                reason: row[COL_REASON] || "—", 
-                currentRemark: row[COL_NEW_REMARKS] || "" 
-            })); 
-            if(progressFill) progressFill.style.width = "100%";
-            if(progressText) progressText.innerText = "Complete!";
-            setTimeout(() => { if(progressContainer) progressContainer.style.display = "none"; }, 800);
-            const ac = getActiveRecords().length; 
-            const uniqueSansadCount = getUniqueSansadCount(); 
-            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; 
-            if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText = `Synced: ${new Date().toLocaleTimeString()}`; 
-            updateFilterDisplays(); 
-            updateMiniBarChart(); 
-            populateSansadDropdown();
-            resetFilters(); 
-            if(!isAuto) showToast(`📥 Synced! ${ac} pending`, "success"); 
-            if(currentUser) { 
-                await getMyUpdates(currentUser.userName); 
-                await getAllUsersPerformance();
-                await getMyTodayKycCount(currentUser.userName);
-                await getTodayKycCount();
-            } 
-        } catch(e) { 
-            console.error("Sync error:", e);
-            if(progressText) progressText.innerText = "Failed";
-            if(container) container.innerHTML = `<div class="waiting-card">⚠️ Sync failed<br><span style="font-size:0.6rem;">Check URL</span></div>`;
-            if(!isAuto) showToast("❌ Sync failed", "error"); 
-        } finally { 
-            isAutoSyncing = false; 
-            if(!isAuto && syncBtn) syncBtn.disabled = false; 
-        } 
-    }
-    
-    async function sendHeartbeat() {
-        if (!currentUser || !sessionId) return;
-        try {
-            const payload = new URLSearchParams();
-            payload.append("action", "heartbeat");
-            payload.append("sessionId", sessionId);
-            await fetch(WEB_APP_URL, { method: "POST", body: payload });
-        } catch(e) { console.log("Heartbeat error:", e); }
-    }
-    
-    async function fetchOnlineCount() {
-        if (!currentUser) return;
-        try {
-            const response = await fetch(`${WEB_APP_URL}?action=getOnlineCount`);
-            const data = await response.json();
-            if (data.success) {
-                const count = data.count || 0;
-                const onlineSpan = document.getElementById("onlineCountValue");
-                if (onlineSpan) onlineSpan.innerText = count;
-            }
-        } catch(e) { console.log("Online fetch error:", e); }
-    }
-    
-    function startOnlineMonitoring() {
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
-        if (onlinePollInterval) clearInterval(onlinePollInterval);
-        if (lastActivePollInterval) clearInterval(lastActivePollInterval);
-        sendHeartbeat();
-        heartbeatInterval = setInterval(() => sendHeartbeat(), HEARTBEAT_INTERVAL);
-        onlinePollInterval = setInterval(() => fetchOnlineCount(), ONLINE_POLL_INTERVAL);
-        lastActivePollInterval = setInterval(() => fetchAndDisplayLastActive(), LAST_ACTIVE_POLL_INTERVAL);
-        fetchOnlineCount();
-        fetchAndDisplayLastActive();
-    }
-    
-    function stopOnlineMonitoring() {
-        if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
-        if (onlinePollInterval) { clearInterval(onlinePollInterval); onlinePollInterval = null; }
-        if (lastActivePollInterval) { clearInterval(lastActivePollInterval); lastActivePollInterval = null; }
-    }
-    
-    async function checkIn(userName) { 
-        if (!sessionId) sessionId = generateSessionId();
-        try {
-            const payload = new URLSearchParams();
-            payload.append("action", "checkIn"); 
-            payload.append("userName", userName); 
-            payload.append("sessionId", sessionId);
-            const response = await fetch(WEB_APP_URL, { method: "POST", body: payload });
-            const result = await response.json();
-            if (result.success === false && result.alreadyLoggedIn) {
-                showToast(result.error, "error");
-                return false;
-            }
-            return true;
-        } catch (err) { return true; }
-    }
-    
-    async function getMyUpdates(userName) { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); 
-            const data = await res.json(); 
-            const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = data.success ? data.myCount : 0; 
-        } catch(e) { const s = document.getElementById("myUpdatesValue"); if(s) s.innerText = "0"; } 
-    }
-    
-    async function getAllUsersPerformance() { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); 
-            const data = await res.json(); 
-            const s = document.getElementById("allUsersValue"); if(s) s.innerText = data.success ? data.totalUpdates : 0; 
-        } catch(e) { const s = document.getElementById("allUsersValue"); if(s) s.innerText = "0"; } 
-    }
-    
-    async function getMyTodayKycCount(userName) { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); 
-            const data = await res.json(); 
-            const s = document.getElementById("myTodayKycValue"); 
-            if(s) {
-                const count = data.success ? data.count : 0;
-                s.innerText = count;
-                if(count > 0) { s.style.background = "linear-gradient(135deg, #3b82f6, #1d4ed8)"; s.style.color = "white"; }
-                else { s.style.background = "white"; s.style.color = "#ec4899"; }
-            }
-            return data;
-        } catch(e) { const s = document.getElementById("myTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } 
-    }
-    
-    async function getTodayKycCount() { 
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); 
-            const data = await res.json(); 
-            const s = document.getElementById("totalTodayKycValue"); 
-            if(s) {
-                const count = data.success ? data.count : 0;
-                s.innerText = count;
-                if(count > 0) { s.style.background = "linear-gradient(135deg, #10b981, #059669)"; s.style.color = "white"; }
-                else { s.style.background = "white"; s.style.color = "#ec4899"; }
-            }
-            return data;
-        } catch(e) { const s = document.getElementById("totalTodayKycValue"); if(s) s.innerText = "0"; return { success: false, count: 0 }; } 
-    }
-    
-    async function handleLogin(u, p) { 
-        const btn = document.getElementById("loginBtn"); 
-        btn.disabled = true; btn.textContent = "Logging in...";
-        try { 
-            const res = await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); 
-            const data = await res.json(); 
-            if(data.success) { 
-                showToast(`🎉 Welcome, ${data.fullName || u}!`, "success"); 
-                currentUser = { userName: data.userName || u, fullName: data.fullName || u }; 
-                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser)); 
-                sessionId = generateSessionId();
-                const checkInResult = await checkIn(currentUser.userName);
-                if (checkInResult === false) {
-                    btn.disabled = false; btn.textContent = "Sign In";
-                    return;
-                }
-                renderMainApp(); 
-            } else { 
-                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">${data.error || "Invalid credentials"}</div>`; 
-            } 
-        } catch(e) { 
-            document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">Connection error</div>`; 
-        } finally { 
-            btn.disabled = false; btn.textContent = "Sign In";
-        } 
-    }
+        if(isAutoSyncing) return; isAutoSyncing=true; const syncBtn=document.getElementById("syncBtn"); const progressContainer=document.getElementById("syncProgressContainer"); const progressFill=document.getElementById("syncProgressFill"); const progressText=document.getElementById("syncProgressText"); if(!isAuto&&syncBtn) syncBtn.disabled=true; if(progressContainer) progressContainer.style.display="block"; if(progressFill) progressFill.style.width="0%"; if(progressText) progressText.innerText="Connecting..."; const container=document.getElementById("cardContainer"); if(container) container.innerHTML=`<div class="waiting-card"><div class="loading-spinner"></div><div>Syncing data...</div></div>`; try{ if(progressFill) progressFill.style.width="30%"; if(progressText) progressText.innerText="Fetching..."; const res=await fetch(WEB_APP_URL+"?action=getData"); if(!res.ok) throw new Error(`HTTP ${res.status}`); const raw=await res.json(); if(progressFill) progressFill.style.width="70%"; if(progressText) progressText.innerText="Processing..."; allRecords=raw.map((row,i)=>({ sheetRow:i+2, sansad:row[COL_SANSAD]||"—", jobCard:row[COL_JOB_CARD]||"—", applicantName:row[COL_APPLICANT_NAME]||"—", guardian:row[COL_GUARDIAN]||"—", reason:row[COL_REASON]||"—", currentRemark:row[COL_NEW_REMARKS]||"" })); if(progressFill) progressFill.style.width="100%"; if(progressText) progressText.innerText="Complete!"; setTimeout(()=>{ if(progressContainer) progressContainer.style.display="none"; },800); const ac=getActiveRecords().length; const uniqueSansadCount=getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML=`${ac} / ${uniqueSansadCount}`; if(document.getElementById("lastSyncTime")) document.getElementById("lastSyncTime").innerText=`Synced: ${new Date().toLocaleTimeString()}`; updateFilterDisplays(); updateMiniBarChart(); populateSansadDropdown(); resetFilters(); if(!isAuto) showToast(`📥 Synced! ${ac} pending`,"success"); if(currentUser){ await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); } } catch(e){ if(progressText) progressText.innerText="Failed"; if(!isAuto) showToast("❌ Sync failed","error"); } finally{ isAutoSyncing=false; if(!isAuto&&syncBtn) syncBtn.disabled=false; } }
+    async function sendHeartbeat() { if(!currentUser||!sessionId) return; try{ const p=new URLSearchParams(); p.append("action","heartbeat"); p.append("sessionId",sessionId); await fetch(WEB_APP_URL,{method:"POST",body:p}); }catch(e){} }
+    async function fetchOnlineCount() { if(!currentUser) return; try{ const res=await fetch(`${WEB_APP_URL}?action=getOnlineCount`); const data=await res.json(); if(data.success){ const count=data.count||0; const onlineSpan=document.getElementById("onlineCountValue"); if(onlineSpan) onlineSpan.innerText=count; } }catch(e){} }
+    function startOnlineMonitoring(){ if(heartbeatInterval) clearInterval(heartbeatInterval); if(onlinePollInterval) clearInterval(onlinePollInterval); if(lastActivePollInterval) clearInterval(lastActivePollInterval); sendHeartbeat(); heartbeatInterval=setInterval(()=>sendHeartbeat(),HEARTBEAT_INTERVAL); onlinePollInterval=setInterval(()=>fetchOnlineCount(),ONLINE_POLL_INTERVAL); lastActivePollInterval=setInterval(()=>fetchAndDisplayLastActive(),LAST_ACTIVE_POLL_INTERVAL); fetchOnlineCount(); fetchAndDisplayLastActive(); }
+    function stopOnlineMonitoring(){ if(heartbeatInterval){ clearInterval(heartbeatInterval); heartbeatInterval=null; } if(onlinePollInterval){ clearInterval(onlinePollInterval); onlinePollInterval=null; } if(lastActivePollInterval){ clearInterval(lastActivePollInterval); lastActivePollInterval=null; } }
+    async function checkIn(userName){ if(!sessionId) sessionId=generateSessionId(); try{ const p=new URLSearchParams(); p.append("action","checkIn"); p.append("userName",userName); p.append("sessionId",sessionId); const response=await fetch(WEB_APP_URL,{method:"POST",body:p}); const result=await response.json(); if(result.success===false&&result.alreadyLoggedIn){ showToast(result.error,"error"); return false; } return true; }catch(err){ return true; } }
+    async function getMyUpdates(userName){ try{ const res=await fetch(`${WEB_APP_URL}?action=getMyUpdates&userName=${encodeURIComponent(userName)}`); const data=await res.json(); const s=document.getElementById("myUpdatesValue"); if(s) s.innerText=data.success?data.myCount:0; }catch(e){ const s=document.getElementById("myUpdatesValue"); if(s) s.innerText="0"; } }
+    async function getAllUsersPerformance(){ try{ const res=await fetch(`${WEB_APP_URL}?action=getAllUsersPerformance`); const data=await res.json(); const s=document.getElementById("allUsersValue"); if(s) s.innerText=data.success?data.totalUpdates:0; }catch(e){ const s=document.getElementById("allUsersValue"); if(s) s.innerText="0"; } }
+    async function getMyTodayKycCount(userName){ try{ const res=await fetch(`${WEB_APP_URL}?action=getMyTodayKycCount&userName=${encodeURIComponent(userName)}`); const data=await res.json(); const s=document.getElementById("myTodayKycValue"); if(s){ const count=data.success?data.count:0; s.innerText=count; if(count>0){ s.style.background="linear-gradient(135deg, #3b82f6, #1d4ed8)"; s.style.color="white"; }else{ s.style.background="white"; s.style.color="#ec4899"; } } return data; }catch(e){ const s=document.getElementById("myTodayKycValue"); if(s) s.innerText="0"; return{success:false,count:0}; } }
+    async function getTodayKycCount(){ try{ const res=await fetch(`${WEB_APP_URL}?action=getTodayKycCount`); const data=await res.json(); const s=document.getElementById("totalTodayKycValue"); if(s){ const count=data.success?data.count:0; s.innerText=count; if(count>0){ s.style.background="linear-gradient(135deg, #10b981, #059669)"; s.style.color="white"; }else{ s.style.background="white"; s.style.color="#ec4899"; } } return data; }catch(e){ const s=document.getElementById("totalTodayKycValue"); if(s) s.innerText="0"; return{success:false,count:0}; } }
+    async function handleLogin(u,p){ const btn=document.getElementById("loginBtn"); btn.disabled=true; btn.textContent="Logging in..."; try{ const res=await fetch(`${WEB_APP_URL}?action=auth&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`); const data=await res.json(); if(data.success){ showToast(`🎉 Welcome, ${data.fullName||u}!`,"success"); currentUser={userName:data.userName||u,fullName:data.fullName||u}; localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser)); sessionId=generateSessionId(); const checkInResult=await checkIn(currentUser.userName); if(checkInResult===false){ btn.disabled=false; btn.textContent="Sign In"; return; } renderMainApp(); }else{ document.getElementById("authError").innerHTML=`<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">${data.error||"Invalid credentials"}</div>`; } }catch(e){ document.getElementById("authError").innerHTML=`<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.8rem;">Connection error</div>`; } finally{ btn.disabled=false; btn.textContent="Sign In"; } }
     
     function renderAuthPage() { 
-        document.getElementById("app").innerHTML = `
-            <div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div>
-            <div style="text-align:center;font-size:0.65rem;color:#64748b;margin-bottom:24px;">MGNREGA</div>
-            <div id="authError"></div>
-            <div style="margin-bottom:14px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
-            <div style="margin-bottom:14px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
-            <button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button>
-            <div style="text-align:center;margin-top:16px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Create Account</span></div></div>
-        `;
+        document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">🔐 KYC Portal</div><div style="text-align:center;font-size:0.65rem;color:#64748b;margin-bottom:24px;">MGNREGA</div><div id="authError"></div><div style="margin-bottom:14px;"><input id="loginUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div><div style="margin-bottom:14px;"><input id="loginPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div><button id="loginBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Sign In</button><div style="text-align:center;margin-top:16px;"><span id="showSignup" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Create Account</span></div></div>`;
         document.getElementById("loginBtn").onclick = () => { const u = document.getElementById("loginUsername").value.trim(), p = document.getElementById("loginPassword").value.trim(); if(u && p) handleLogin(u,p); else showToast("Enter credentials","error"); };
         document.getElementById("showSignup").onclick = () => renderSignupPage();
     }
-    
-    function renderSignupPage() {
-        document.getElementById("app").innerHTML = `
-            <div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div>
-            <div id="authError"></div>
-            <div style="margin-bottom:14px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
-            <div style="margin-bottom:14px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
-            <div style="margin-bottom:14px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div>
-            <button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button>
-            <div style="text-align:center;margin-top:16px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Back to Login</span></div></div>
-        `;
-        document.getElementById("signupBtn").onclick = async () => {
-            const n = document.getElementById("signupName").value.trim();
-            const u = document.getElementById("signupUsername").value.trim();
-            const p = document.getElementById("signupPassword").value.trim();
-            if(!n || !u || !p) { showToast("All fields required", "error"); return; }
-            try {
-                const params = new URLSearchParams();
-                params.append("action", "register");
-                params.append("fullName", n);
-                params.append("username", u);
-                params.append("password", p);
-                const res = await fetch(WEB_APP_URL, { method: "POST", body: params });
-                const data = await res.json();
-                if(data.success) {
-                    showToast("Registered! Wait for admin approval.", "success");
-                    setTimeout(() => renderAuthPage(), 2000);
-                } else {
-                    document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">${data.error}</div>`;
-                }
-            } catch(e) {
-                document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">Network error</div>`;
-            }
-        };
+    function renderSignupPage() { document.getElementById("app").innerHTML = `<div class="auth-card"><div style="font-size:1.5rem;font-weight:800;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;">📝 Create Account</div><div id="authError"></div><div style="margin-bottom:14px;"><input id="signupName" placeholder="Full Name" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div><div style="margin-bottom:14px;"><input id="signupUsername" placeholder="Username" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div><div style="margin-bottom:14px;"><input id="signupPassword" type="password" placeholder="Password" style="width:100%;padding:12px;border-radius:20px;border:1px solid #e2e8f0;font-size:0.85rem;"></div><button id="signupBtn" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);border:none;padding:12px;border-radius:40px;color:white;font-weight:700;cursor:pointer;">Register</button><div style="text-align:center;margin-top:16px;"><span id="showLogin" style="color:#8b5cf6;cursor:pointer;font-size:0.75rem;">Back to Login</span></div></div>`;
+        document.getElementById("signupBtn").onclick = async () => { const n = document.getElementById("signupName").value.trim(); const u = document.getElementById("signupUsername").value.trim(); const p = document.getElementById("signupPassword").value.trim(); if(!n || !u || !p) { showToast("All fields required", "error"); return; } try { const params = new URLSearchParams(); params.append("action", "register"); params.append("fullName", n); params.append("username", u); params.append("password", p); const res = await fetch(WEB_APP_URL, { method: "POST", body: params }); const data = await res.json(); if(data.success) { showToast("Registered! Wait for admin approval.", "success"); setTimeout(() => renderAuthPage(), 2000); } else { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">${data.error}</div>`; } } catch(e) { document.getElementById("authError").innerHTML = `<div style="background:#fee2e2;color:#dc2626;padding:10px;border-radius:16px;font-size:0.75rem;">Network error</div>`; } };
         document.getElementById("showLogin").onclick = () => renderAuthPage();
     }
     
-    // filter functions (shortened for brevity but full logic)
-    function updateFilterDisplays() { 
-        const sansadCount = getUniqueSansadCount();
-        const sansadSpan = document.getElementById("sansadCount");
-        if(sansadSpan) { sansadSpan.innerText = sansadCount; if(sansadCount === 0) sansadSpan.classList.add("zero"); else sansadSpan.classList.remove("zero"); }
-        if(selectedSansad) { const jobCount = getUniqueJobCardCount(selectedSansad); const jobSpan = document.getElementById("jobCardCount"); if(jobSpan) { jobSpan.innerText = jobCount; if(jobCount === 0) jobSpan.classList.add("zero"); else jobSpan.classList.remove("zero"); } }
-        if(selectedSansad && selectedJobCard) { const appCount = getUniqueApplicantCount(selectedSansad, selectedJobCard); const appSpan = document.getElementById("applicantCount"); if(appSpan) { appSpan.innerText = appCount; if(appCount === 0) appSpan.classList.add("zero"); else appSpan.classList.remove("zero"); } }
-    }
-    function populateSansadDropdown() { 
-        const vals = getUniqueSansadValues(); const sel = document.getElementById("filterSansad"); if(!sel) return; sel.innerHTML = '<option value="">-- Select Sansad --</option>'; vals.forEach(v => { sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); updateFilterDisplays(); 
-    }
-    function updateJobCardDropdown() { 
-        if(!selectedSansad) { const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } updateFilterDisplays(); return; } 
-        const vals = getUniqueJobCardValues(selectedSansad); const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } selectedJobCard = ""; selectedApplicant = ""; const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
-    }
-    function updateApplicantDropdown() { 
-        if(!selectedSansad || !selectedJobCard) { const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } updateFilterDisplays(); return; } 
-        const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); 
-    }
+    // Filter UI functions
+    function updateFilterDisplays() { const sansadCount = getUniqueSansadCount(); const sansadSpan = document.getElementById("sansadCount"); if(sansadSpan) { sansadSpan.innerText = sansadCount; if(sansadCount === 0) sansadSpan.classList.add("zero"); else sansadSpan.classList.remove("zero"); } if(selectedSansad) { const jobCount = getUniqueJobCardCount(selectedSansad); const jobSpan = document.getElementById("jobCardCount"); if(jobSpan) { jobSpan.innerText = jobCount; if(jobCount === 0) jobSpan.classList.add("zero"); else jobSpan.classList.remove("zero"); } } if(selectedSansad && selectedJobCard) { const appCount = getUniqueApplicantCount(selectedSansad, selectedJobCard); const appSpan = document.getElementById("applicantCount"); if(appSpan) { appSpan.innerText = appCount; if(appCount === 0) appSpan.classList.add("zero"); else appSpan.classList.remove("zero"); } } }
+    function populateSansadDropdown() { const vals = getUniqueSansadValues(); const sel = document.getElementById("filterSansad"); if(!sel) return; sel.innerHTML = '<option value="">-- Select Sansad --</option>'; vals.forEach(v => { sel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); updateFilterDisplays(); }
+    function updateJobCardDropdown() { if(!selectedSansad) { const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; jobSel.disabled = true; } updateFilterDisplays(); return; } const vals = getUniqueJobCardValues(selectedSansad); const jobSel = document.getElementById("filterJobCard"); if(jobSel) { jobSel.innerHTML = '<option value="">-- Select Job Card --</option>'; vals.forEach(v => { jobSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); jobSel.disabled = vals.length === 0; } selectedJobCard = ""; selectedApplicant = ""; const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } filteredRecord = null; updateFilterDisplays(); renderCurrentView(); }
+    function updateApplicantDropdown() { if(!selectedSansad || !selectedJobCard) { const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; appSel.disabled = true; } updateFilterDisplays(); return; } const vals = getUniqueApplicantValues(selectedSansad, selectedJobCard); const appSel = document.getElementById("filterApplicant"); if(appSel) { appSel.innerHTML = '<option value="">-- Select Applicant --</option>'; vals.forEach(v => { appSel.innerHTML += `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`; }); appSel.disabled = vals.length === 0; } selectedApplicant = ""; filteredRecord = null; updateFilterDisplays(); renderCurrentView(); }
     function resetFilters() { selectedSansad = ""; selectedJobCard = ""; selectedApplicant = ""; const sansad = document.getElementById("filterSansad"); if(sansad) sansad.value = ""; updateJobCardDropdown(); filteredRecord = null; searchQuery = ""; const si = document.getElementById("globalSearchInput"); if(si) si.value = ""; currentMode = "filter"; toggleModeUI(); updateFilterDisplays(); renderCurrentView(); }
     function toggleModeUI() { const fb = document.getElementById("modeFilterBtn"), sb = document.getElementById("modeSearchBtn"); if(fb && sb) { if(currentMode === "filter") { fb.classList.add("active"); sb.classList.remove("active"); } else { sb.classList.add("active"); fb.classList.remove("active"); } } const fs = document.getElementById("filterSelects"), sa = document.getElementById("searchArea"); if(fs && sa) { fs.style.display = currentMode === "filter" ? "block" : "none"; sa.style.display = currentMode === "search" ? "block" : "none"; } if(currentMode === "search" && searchQuery.trim()) performSearchAndRender(); else if(currentMode === "filter") renderCurrentView(); else renderWaiting(); }
     function leftToRightMatch(fieldValue, searchTerm) { if (!fieldValue || fieldValue === "—") return false; return fieldValue.toLowerCase().startsWith(searchTerm.toLowerCase()); }
@@ -694,7 +428,77 @@
     async function uploadSingleFromQueue() { if(pendingQueue.length === 0) return; const item = pendingQueue[0]; showProgress(1, pendingQueue.length, `Uploading: ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); const res = await fetch(WEB_APP_URL, { method: "POST", body: p }); const result = await res.json(); if(result.success) { pendingQueue.shift(); saveQueue(); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; if(filteredRecord && filteredRecord.sheetRow === item.sheetRow) { filteredRecord = null; resetFilters(); } showToast(`✅ Uploaded! ${pendingQueue.length} remaining`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateMiniBarChart(); renderCurrentView(); } else { showToast(`❌ Failed`, "error"); } } catch(e) { showToast("Error", "error"); } hideProgress(); }
     async function uploadAllFromQueue() { if(pendingQueue.length === 0) return; const total = pendingQueue.length; for(let i=0; i<pendingQueue.length; i++) { const item = pendingQueue[i]; showProgress(i+1, total, `Uploading ${item.applicantName}`); try { const p = new URLSearchParams(); p.append("action", "updateRemarks"); p.append("sheetRow", item.sheetRow); p.append("newRemarks", item.newRemarks); p.append("userName", currentUser.userName); await fetch(WEB_APP_URL, { method: "POST", body: p }); const cached = allRecords.find(r => r.sheetRow === item.sheetRow); if(cached) cached.currentRemark = item.newRemarks; await new Promise(r => setTimeout(r, 200)); } catch(e) {} } pendingQueue = []; saveQueue(); hideProgress(); if(filteredRecord) { filteredRecord = null; resetFilters(); } showToast(`✅ Batch complete!`, "success"); await getMyUpdates(currentUser.userName); await getAllUsersPerformance(); await getMyTodayKycCount(currentUser.userName); await getTodayKycCount(); updateMiniBarChart(); renderCurrentView(); }
     
+    // Build dynamic export menu with ALL REMARKS as separate buttons
+    function buildExportMenuHTML() {
+        const uniqueRemarks = getUniqueRemarks();
+        let remarksHtml = '';
+        
+        // Category 1: Status based
+        let statusHtml = `
+            <div class="export-category-title">📊 By Status</div>
+            <button id="exportAllBtn">📋 ALL Records (${allRecords.length})</button>
+            <button id="exportIncompleteBtn">⏳ Incomplete / Pending (${getIncompleteRecords().length})</button>
+            <button id="exportCompletedBtn">✅ Completed (${getCompletedRecords().length})</button>
+        `;
+        
+        // Category 2: Each remark separately
+        if (uniqueRemarks.length > 0) {
+            remarksHtml = `<div class="export-category-title">🏷️ By Remark Category</div>`;
+            uniqueRemarks.forEach(remark => {
+                const count = getRecordsByRemark(remark).length;
+                // Get emoji based on remark type
+                let emoji = "📝";
+                if (remark.toLowerCase().includes("death")) emoji = "⚰️";
+                else if (remark.toLowerCase().includes("kyc done")) emoji = "✅";
+                else if (remark.toLowerCase().includes("migrant")) emoji = "🚶";
+                else if (remark.toLowerCase().includes("mismatch")) emoji = "⚠️";
+                else if (remark.toLowerCase().includes("gender")) emoji = "⚧️";
+                else if (remark.toLowerCase().includes("failed")) emoji = "❌";
+                else if (remark.toLowerCase().includes("unwilling")) emoji = "😞";
+                else if (remark.toLowerCase().includes("shifted")) emoji = "🚚";
+                remarksHtml += `<button class="export-by-remark" data-remark="${escapeHtml(remark)}">${emoji} ${escapeHtml(remark)} (${count})</button>`;
+            });
+        }
+        
+        return statusHtml + remarksHtml;
+    }
+    
+    function attachExportEventListeners() {
+        document.getElementById("exportAllBtn")?.addEventListener("click", () => { 
+            exportToCSV(getAllRecordsForExport(), `kyc_all_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`); 
+            toggleExportMenu(); 
+        });
+        document.getElementById("exportIncompleteBtn")?.addEventListener("click", () => { 
+            exportToCSV(getIncompleteRecords(), `kyc_incomplete_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`); 
+            toggleExportMenu(); 
+        });
+        document.getElementById("exportCompletedBtn")?.addEventListener("click", () => { 
+            exportToCSV(getCompletedRecords(), `kyc_completed_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`); 
+            toggleExportMenu(); 
+        });
+        document.querySelectorAll(".export-by-remark").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const remark = btn.getAttribute("data-remark");
+                const records = getRecordsByRemark(remark);
+                const safeFilename = remark.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                exportToCSV(records, `kyc_${safeFilename}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
+                toggleExportMenu();
+            });
+        });
+    }
+    
+    // Function to refresh export menu after data loads (important!)
+    function refreshExportMenu() {
+        const exportMenu = document.getElementById("exportMenu");
+        if (exportMenu && allRecords.length > 0) {
+            const newMenuHTML = buildExportMenuHTML();
+            exportMenu.innerHTML = newMenuHTML;
+            attachExportEventListeners();
+        }
+    }
+    
     function renderMainApp() {
+        const exportMenuHTML = buildExportMenuHTML();
         document.getElementById("app").innerHTML = `
             <div class="user-header">
                 <div class="user-header-top">
@@ -716,39 +520,36 @@
                     <div class="stat-item"><span class="stat-label">📅 Total KYC Today:</span><span class="stat-value today-kyc" id="totalTodayKycValue">0</span><button class="refresh-icon" onclick="window.getTodayKycCount()">⟳</button></div>
                 </div>
             </div>
-            
-            <!-- COMPACT SECTION: Portal Title + Last Active (with time in pink) + Bar Chart -->
             <div class="compact-header-card">
-                <div class="portal-title-row">
-                    <div class="portal-title">📋 KYC Portal</div>
-                </div>
-                <div id="lastActiveContainer">
-                    <div class="status-bar">
-                        <div class="status-left">
-                            <span class="online-pulse"></span>
-                            <span class="last-active-label">🕐 Last Active User</span>
-                            <span class="user-name-badge">—</span>
-                        </div>
-                        <div class="last-time-pink">⏱️ —</div>
+                <div class="portal-title-row"><div class="portal-title">📋 KYC Portal</div></div>
+                <div id="lastActiveContainer"><div class="status-bar"><div class="status-left"><span class="online-pulse"></span><span class="last-active-label">🕐 Last Active User</span><span class="user-name-badge">—</span></div><div class="last-time-pink">⏱️ —</div></div></div>
+                <div id="miniBarChartContainer" class="inline-chart"><div class="chart-title-mini">✓ KYC Completed</div><div class="chart-legend-mini">Loading...</div></div>
+            </div>
+            <div class="queue-bar" id="queueBar" style="display:none;"><div><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
+            <div class="sync-container">
+                <div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div>
+                <div style="display:flex; gap:8px;">
+                    <div class="export-dropdown">
+                        <button class="export-excel-btn" id="exportExcelBtn">📎 Export Excel ▼</button>
+                        <div id="exportMenu" class="export-menu">${exportMenuHTML}</div>
                     </div>
-                </div>
-                <div id="miniBarChartContainer" class="inline-chart">
-                    <div class="chart-title-mini">✓ KYC Completed</div>
-                    <div class="chart-legend-mini">Loading...</div>
+                    <button class="prominent-sync-btn" id="syncBtn">☁️ Sync</button>
                 </div>
             </div>
-            
-            <div class="queue-bar" id="queueBar" style="display:none;"><div><span class="queue-badge" id="queueCount">0 pending</span></div><div><button class="upload-btn" id="uploadOneBtn">⬆️ Upload Next</button><button class="upload-btn upload-all-btn" id="uploadAllBtn">📤 Upload All</button></div></div>
-            <div class="sync-container"><div><span class="record-count" id="recordCount">0 active</span><span class="last-sync" id="lastSyncTime">Not synced</span></div><button class="prominent-sync-btn" id="syncBtn">☁️ Sync</button></div>
             <div id="syncProgressContainer" class="sync-progress-container" style="display:none;"><div class="sync-progress-bar-bg"><div id="syncProgressFill" class="sync-progress-fill"></div></div><div id="syncProgressText" class="sync-progress-text">Syncing...</div></div>
-            <div class="filter-section"><div class="filter-title">🔍 Find Pending Record</div><div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search</button></div>
-            <div id="filterSelects"><div class="filter-row"><div class="filter-label"><span>🏛️ Sansad</span><span class="filter-count" id="sansadCount">0</span></div><select id="filterSansad" class="filter-select"><option>Loading...</option></select></div>
-            <div class="filter-row"><div class="filter-label"><span>🪪 Job Card</span><span class="filter-count" id="jobCardCount">0</span></div><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select></div>
-            <div class="filter-row"><div class="filter-label"><span>👤 Applicant</span><span class="filter-count" id="applicantCount">0</span></div><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select></div>
-            <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button></div>
-            <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div></div>
+            <div class="filter-section">
+                <div class="filter-title">🔍 Find Pending Record</div>
+                <div class="search-filter-row"><button id="modeFilterBtn" class="mode-toggle active">📋 Filter</button><button id="modeSearchBtn" class="mode-toggle">🔎 Search</button></div>
+                <div id="filterSelects">
+                    <div class="filter-row"><div class="filter-label"><span>🏛️ Sansad</span><span class="filter-count" id="sansadCount">0</span></div><select id="filterSansad" class="filter-select"><option>Loading...</option></select></div>
+                    <div class="filter-row"><div class="filter-label"><span>🪪 Job Card</span><span class="filter-count" id="jobCardCount">0</span></div><select id="filterJobCard" class="filter-select" disabled><option>Select Job Card</option></select></div>
+                    <div class="filter-row"><div class="filter-label"><span>👤 Applicant</span><span class="filter-count" id="applicantCount">0</span></div><select id="filterApplicant" class="filter-select" disabled><option>Select Applicant</option></select></div>
+                    <button id="resetFilterBtn" class="reset-filter-btn">Clear All</button>
+                </div>
+                <div id="searchArea" style="display:none;"><input type="text" id="globalSearchInput" class="filter-select" placeholder="Search by Name, Job Card or Sansad"></div>
+            </div>
             <div id="cardContainer"><div class="waiting-card">Click Sync to load data</div></div>
-            <div class="footer-note">✅ Online: Users active in last 3 min | Last active updates every 15 sec</div>
+            <div class="footer-note">✅ Online: Users active in last 3 min | Export includes ALL columns | Each remark has its own export button</div>
         `;
         
         window.currentUser = currentUser;
@@ -758,7 +559,16 @@
         window.getTodayKycCount = getTodayKycCount;
         
         loadQueue(); 
-        if(allRecords.length) { populateSansadDropdown(); resetFilters(); const ac = getActiveRecords().length; const uniqueSansadCount = getUniqueSansadCount(); if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; updateMiniBarChart(); renderCurrentView(); }
+        if(allRecords.length) { 
+            populateSansadDropdown(); 
+            resetFilters(); 
+            const ac = getActiveRecords().length; 
+            const uniqueSansadCount = getUniqueSansadCount(); 
+            if(document.getElementById("recordCount")) document.getElementById("recordCount").innerHTML = `${ac} / ${uniqueSansadCount}`; 
+            updateMiniBarChart(); 
+            renderCurrentView(); 
+            refreshExportMenu(); // Refresh menu after data loads
+        }
         
         document.getElementById("syncBtn").onclick = () => syncData(false);
         document.getElementById("uploadOneBtn").onclick = uploadSingleFromQueue;
@@ -772,10 +582,20 @@
         const si = document.getElementById("globalSearchInput"); if(si) si.addEventListener("input", () => { searchQuery = si.value; performSearchAndRender(); });
         document.getElementById("logoutBtn").onclick = () => { stopOnlineMonitoring(); localStorage.removeItem(SESSION_KEY); currentUser = null; renderAuthPage(); };
         
+        document.getElementById("exportExcelBtn").onclick = (e) => { e.stopPropagation(); toggleExportMenu(); };
+        attachExportEventListeners();
+        
         startOnlineMonitoring();
         setTimeout(() => syncData(true), 500);
         getMyUpdates(currentUser.userName); getAllUsersPerformance(); getMyTodayKycCount(currentUser.userName); getTodayKycCount();
     }
+    
+    // Override syncData to refresh export menu after sync
+    const originalSyncData = syncData;
+    window.syncData = async function(isAuto) {
+        await originalSyncData(isAuto);
+        refreshExportMenu();
+    };
     
     function init() { 
         const savedUser = localStorage.getItem(SESSION_KEY); 
